@@ -1,0 +1,8 @@
+
+# Do not add the DLL files (at least until the copyright question is solved)
+bin/*.dll
+
+# Temporary, cache and backup files
+*.pyc
+*.bak
+
