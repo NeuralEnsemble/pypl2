@@ -120,10 +120,10 @@ class PyPL2FileReader:
         try:
             self.pl2_dll = CDLL(self.pl2_dll_file)
         except (WindowsError):
-            print "Error: Can't load PL2FileReader.dll at: " + self.pl2_dll_file
-            print "PL2FileReader.dll is bundled with the C++ PL2 Offline Files SDK"
-            print "located on the Plexon Inc website: www.plexon.com"
-            print "Contact Plexon Support for more information: support@plexon.com"
+            print("Error: Can't load PL2FileReader.dll at: " + self.pl2_dll_file)
+            print("PL2FileReader.dll is bundled with the C++ PL2 Offline Files SDK")
+            print("located on the Plexon Inc website: www.plexon.com")
+            print("Contact Plexon Support for more information: support@plexon.com")
     
     def pl2_open_file(self, pl2_file):
         """

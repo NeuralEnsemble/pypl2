@@ -19,8 +19,8 @@
 #   3) Explicitly states which classes and functions in PyPL2 are meant to be public 
 #      parts of the API.
 
-from pypl2lib import PL2FileInfo, PL2AnalogChannelInfo, PL2SpikeChannelInfo, PL2DigitalChannelInfo, PyPL2FileReader
-from pypl2api import pl2_ad, pl2_spikes, pl2_events, pl2_info
+from .pypl2lib import PL2FileInfo, PL2AnalogChannelInfo, PL2SpikeChannelInfo, PL2DigitalChannelInfo, PyPL2FileReader
+from .pypl2api import pl2_ad, pl2_spikes, pl2_events, pl2_info
 
 __author__ = 'Chris Heydrick (chris@plexon.com)'
 __version__ = '1.1.0'

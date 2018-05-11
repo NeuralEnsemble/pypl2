@@ -9,12 +9,12 @@
 # copyright notice is kept intact.
 
 from collections import namedtuple
-from pypl2lib import *
+from .pypl2lib import *
 
 def print_error(pypl2_file_reader_instance):
     error_message = (c_char * 256)()
     pypl2_file_reader_instance.pl2_get_last_error(error_message, 256)
-    print error_message.value
+    print(error_message.value)
     
 
 def pl2_ad(filename, channel):
