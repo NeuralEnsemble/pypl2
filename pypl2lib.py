@@ -95,21 +95,25 @@ class PL2DigitalChannelInfo(Structure):
                 ("m_NumberOfEvents",c_ulonglong)]
 
 class PyPL2FileReader:
-    def __init__(self, pl2_dll_path = 'bin'):
+    def __init__(self, pl2_dll_path = None):
         """
         PyPL2FileReader class implements functions in the C++ PL2 File Reader
         API provided by Plexon, Inc.
         
         Args:
-            pl2_dll_path - path where PL2FileReader.dll is location. The default value 
-                assumes the bin folder (with the .dll inside) is in your current working
-                directory. Any file path passed is converted to an absolute path and checked
+            pl2_dll_path - path where PL2FileReader.dll is location.
+                The default value assumes the .dll files are located in the
+                'bin' directory, which is a subdirectory of the directory this
+                script is in.
+                Any file path passed is converted to an absolute path and checked
                 to see if the .dll exists there.
         
         Returns:
             None
         """
         self.platform = platform.architecture()[0]
+        if pl2_dll_path is None:
+            pl2_dll_path = os.path.join(os.path.split(__file__)[0], 'bin')
         self.pl2_dll_path = os.path.abspath(pl2_dll_path)
         
         if self.platform == '32bit':
