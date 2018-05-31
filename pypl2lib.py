@@ -144,7 +144,7 @@ class PyPL2FileReader:
         """
         self.file_handle = c_int(0)
         self.result = c_int(0)
-        self.result = self.pl2_dll.PL2_OpenFile(pl2_file, byref(self.file_handle))
+        self.result = self.pl2_dll.PL2_OpenFile(pl2_file.encode('ascii'), byref(self.file_handle))
 
         return self.file_handle.value    
 
