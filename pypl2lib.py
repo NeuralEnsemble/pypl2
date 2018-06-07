@@ -248,7 +248,7 @@ class PyPL2FileReader:
         """
         
         self.result = c_int(0)
-        self.result = self.pl2_dll.PL2_GetAnalogChannelInfoByName(c_int(file_handle), channel_name, byref(pl2_analog_channel_info))
+        self.result = self.pl2_dll.PL2_GetAnalogChannelInfoByName(c_int(file_handle), channel_name.encode('ascii'), byref(pl2_analog_channel_info))
 
         return self.result
         
@@ -320,7 +320,7 @@ class PyPL2FileReader:
         """
 
         self.result = c_int(0)
-        self.result = self.pl2_dll.PL2_GetAnalogChannelDataByName(c_int(file_handle), channel_name, byref(num_fragments_returned), byref(num_data_points_returned), byref(fragment_timestamps), byref(fragment_counts), byref(values))
+        self.result = self.pl2_dll.PL2_GetAnalogChannelDataByName(c_int(file_handle), channel_name.encode('ascii'), byref(num_fragments_returned), byref(num_data_points_returned), byref(fragment_timestamps), byref(fragment_counts), byref(values))
         
         return self.result
      
@@ -385,7 +385,7 @@ class PyPL2FileReader:
         """
     
         self.result = c_int(0)
-        self.result = self.pl2_dll.PL2_GetSpikeChannelInfoByName(c_int(file_handle), channel_name, byref(pl2_spike_channel_info))
+        self.result = self.pl2_dll.PL2_GetSpikeChannelInfoByName(c_int(file_handle), channel_name.encode('ascii'), byref(pl2_spike_channel_info))
         
         return self.result
     
@@ -452,7 +452,7 @@ class PyPL2FileReader:
         """
 
         self.result = c_int(0)
-        self.result = self.pl2_dll.PL2_GetSpikeChannelDataByName(c_int(file_handle), channel_name, byref(num_spikes_returned), byref(spike_timestamps), byref(units), byref(values))    
+        self.result = self.pl2_dll.PL2_GetSpikeChannelDataByName(c_int(file_handle), channel_name.encode('ascii'), byref(num_spikes_returned), byref(spike_timestamps), byref(units), byref(values))    
         
         return self.result
         
@@ -516,7 +516,7 @@ class PyPL2FileReader:
         """
         
         self.result = c_int(0)
-        self.result = self.pl2_dll.PL2_GetDigitalChannelInfoByName(c_int(file_handle), channel_name, byref(pl2_digital_channel_info))
+        self.result = self.pl2_dll.PL2_GetDigitalChannelInfoByName(c_int(file_handle), channel_name.encode('ascii'), byref(pl2_digital_channel_info))
         
         return self.result
         
@@ -581,7 +581,7 @@ class PyPL2FileReader:
         """        
 
         self.result = c_int(0)
-        self.result = self.pl2_dll.PL2_GetDigitalChannelDataByName(c_int(file_handle), channel_name, byref(num_events_returned), byref(event_timestamps), byref(event_values))
+        self.result = self.pl2_dll.PL2_GetDigitalChannelDataByName(c_int(file_handle), channel_name.encode('ascii'), byref(num_events_returned), byref(event_timestamps), byref(event_values))
         
         return self.result        
         
