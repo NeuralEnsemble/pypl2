@@ -9,7 +9,7 @@ A free download was available at the time of this writing at:
 https://plexon.com/software-downloads/#software-downloads-SDKs
 
 Under "OmniPlex and MAP Offline (For reading previously recorded data files)"
-you will can download the "OmniPlex and MAP Offline SDK Bundle".
+you can download the "OmniPlex and MAP Offline SDK Bundle".
 
 The required files are in the bundle, at:
 
