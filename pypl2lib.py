@@ -146,7 +146,7 @@ class PyPL2FileReader:
         self.result = c_int(0)
         self.result = self.pl2_dll.PL2_OpenFile(pl2_file.encode('ascii'), byref(self.file_handle))
 
-        return self.file_handle.value    
+        return self.file_handle.value
 
     def pl2_close_file(self, file_handle):
         """
@@ -159,7 +159,7 @@ class PyPL2FileReader:
             None
         """
         
-        self.pl2_dll.PL2_CloseFile(c_int(self.file_handle))
+        self.pl2_dll.PL2_CloseFile(self.file_handle)
             
     def pl2_close_all_files(self):
         """
