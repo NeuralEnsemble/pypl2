@@ -115,6 +115,9 @@ def pl2_ad(filename, channel):
         print_error(p)
         return 0
     
+    # Close the file
+    p.pl2_close_file(handle)
+    
     #Create a named tuple called PL2Ad.
     PL2Ad = namedtuple('PL2Ad', 'adfrequency n timestamps fragmentcounts ad')
     
@@ -222,6 +225,9 @@ def pl2_spikes(filename, channel, unit = []):
         print_error(p)
         return 0    
         
+    # Close the file
+    p.pl2_close_file(handle)
+    
     #The c_short() array called 'values' is currently a one-dimensional array of 
     #waveform samples, which isn't in volts, and it's not easy to just get one
     #waveform out of it. I want this to be converted to volts, and also be 
@@ -330,6 +336,9 @@ def pl2_events(filename, channel):
                                                      num_events_returned,
                                                      event_timestamps,
                                                      event_values)
+    
+    # Close the file
+    p.pl2_close_file(handle)
     
     #Create a named tuple called PL2DigitalEvents
     PL2DigitalEvents = namedtuple('PL2DigitalEvents', 'n timestamps values')
@@ -467,6 +476,8 @@ def pl2_info(filename):
         if achannel_info.m_ChannelEnabled:
             ad_counts.append(ad_info(achannel_info.m_Channel, achannel_info.m_Name, achannel_info.m_NumberOfValues))
     
+    # Close the file
+    p.pl2_close_file(handle)
     
     PL2Info = namedtuple('PL2Info', 'spikes events ad')
     
