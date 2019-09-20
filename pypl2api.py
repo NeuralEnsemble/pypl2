@@ -9,13 +9,21 @@
 # copyright notice is kept intact.
 
 from collections import namedtuple
+import numpy as np
 from .pypl2lib import *
 
 def print_error(pypl2_file_reader_instance):
     error_message = (c_char * 256)()
     pypl2_file_reader_instance.pl2_get_last_error(error_message, 256)
     print(error_message.value)
-    
+
+def to_array(c_array):
+    return np.ctypeslib.as_array(c_array)
+
+def to_array_nonzero(c_array):
+    a = np.ctypeslib.as_array(c_array)
+    return a[np.where(a)]
+
 
 def pl2_ad(filename, channel):
 
@@ -124,9 +132,9 @@ def pl2_ad(filename, channel):
     #Fill in and return named tuple.
     return PL2Ad(achannel_info.m_SamplesPerSecond, 
                  num_data_points_returned.value,
-                 tuple([x/file_info.m_TimestampFrequency for x in fragment_timestamps if x]),
-                 tuple([x for x in fragment_counts if x]),
-                 tuple([x*achannel_info.m_CoeffToConvertToUnits for x in values]))
+                 to_array_nonzero(fragment_timestamps) / file_info.m_TimestampFrequency,
+                 to_array_nonzero(fragment_counts),
+                 to_array(values) * achannel_info.m_CoeffToConvertToUnits)
 
 def pl2_spikes(filename, channel, unit = []):
     """
@@ -233,27 +241,17 @@ def pl2_spikes(filename, channel, unit = []):
     #waveform out of it. I want this to be converted to volts, and also be 
     #converted to a tuple of tuples that contain the waveform voltage values.
     
-    #First, convert all A/D samples in 'values' to volts
-    values = tuple([x*schannel_info.m_CoeffToConvertToUnits for x in values])
-    
     #Then, extract the waveforms from 'values' into a multi-dimensional
     #Python tuple. If there is a more 'Pythonic' way to do this, I want
     #to know about it!
-    waveforms = []
-    current_location = 0
-    breadth = schannel_info.m_SamplesPerSpike
-    for i in range(num_spikes_returned.value):
-        temp = values[current_location:current_location+breadth]
-        waveforms.append(temp)
-        current_location += breadth
-    waveforms = tuple(waveforms)
+    waveforms = (to_array(values) * schannel_info.m_CoeffToConvertToUnits).reshape((num_spikes_returned.value, schannel_info.m_SamplesPerSpike))
     
     #Create a named tuple called PL2Spikes
     PL2Spikes = namedtuple('PL2Spikes', 'n timestamps units waveforms')
     
     return PL2Spikes(num_spikes_returned.value,
-                     tuple(x/file_info.m_TimestampFrequency for x in spike_timestamps),
-                     tuple(x for x in units),
+                     to_array(spike_timestamps) / file_info.m_TimestampFrequency,
+                     to_array(units),
                      waveforms)
 
  
@@ -344,8 +342,8 @@ def pl2_events(filename, channel):
     PL2DigitalEvents = namedtuple('PL2DigitalEvents', 'n timestamps values')
     
     return PL2DigitalEvents(num_events_returned.value,
-                            tuple(x/file_info.m_TimestampFrequency for x in event_timestamps),
-                            tuple(x for x in event_values))
+                            to_array(event_timestamps) / file_info.m_TimestampFrequency,
+                            to_array(event_values))
 
 def pl2_info(filename):
     """
