@@ -10,14 +10,18 @@
 
 from sys import platform
 if any(platform.startswith(name) for name in ('linux', 'darwin', 'freebsd')):
-        import zugbruecke.ctypes as ctypes
+    from zugbruecke import CtypesSession
+    ctypes = CtypesSession(log_level=100)
+    byref = CtypesSession.byref
+    CDLL = ctypes.CDLL
+    Structure = ctypes.Structure
+    (c_int, c_char, c_double, c_uint, c_ushort, c_short, c_ulonglong, c_longlong, Structure, POINTER) = \
+    (ctypes.c_int, ctypes.c_char, ctypes.c_double, ctypes.c_uint, ctypes.c_ushort, ctypes.c_short, ctypes.c_ulonglong, ctypes.c_longlong, ctypes.Structure, ctypes.POINTER)
 elif platform.startswith('win'):
-        import ctypes
+    print('on WINDOWS')
+    from ctypes import CDLL, byref, c_int, c_char, c_double, c_uint, c_ushort, c_ulonglong, Structure, POINTER, c_longlong, c_short
 else:
-        raise SystemError('unsupported platform')
-
-from ctypes import (c_int, c_char, c_double, c_uint, c_ushort, c_ulonglong,
-                    byref, Structure, CDLL)
+    raise SystemError('unsupported platform')
 
 import os
 import platform
@@ -105,7 +109,7 @@ class PL2DigitalChannelInfo(Structure):
                 ("m_NumberOfEvents",c_ulonglong)]
 
 class PyPL2FileReader:
-    def __init__(self, pl2_dll_path = None):
+    def __init__(self, pl2_dll_path=None):
         """
         PyPL2FileReader class implements functions in the C++ PL2 File Reader
         API provided by Plexon, Inc.
@@ -130,7 +134,7 @@ class PyPL2FileReader:
         self.pl2_dll_file = os.path.join(self.pl2_dll_path, 'PL2FileReader.dll')
 
         try:
-            self.pl2_dll = ctypes.CDLL(self.pl2_dll_file)
+            self.pl2_dll = CDLL(self.pl2_dll_file)
         except IOError:
             raise IOError("Error: Can't load PL2FileReader.dll at: " + self.pl2_dll_file +
                           "PL2FileReader.dll is bundled with the C++ PL2 Offline Files SDK"
