@@ -8,7 +8,17 @@
 # You are free to modify or share this file, provided that the above
 # copyright notice is kept intact.
 
-from ctypes import *
+from sys import platform
+if any(platform.startswith(name) for name in ('linux', 'darwin', 'freebsd')):
+        import zugbruecke.ctypes as ctypes
+elif platform.startswith('win'):
+        import ctypes
+else:
+        raise SystemError('unsupported platform')
+
+from ctypes import (c_int, c_char, c_double, c_uint, c_ushort, c_ulonglong,
+                    byref, Structure, CDLL)
+
 import os
 import platform
 
@@ -116,18 +126,16 @@ class PyPL2FileReader:
             pl2_dll_path = os.path.join(os.path.split(__file__)[0], 'bin')
         self.pl2_dll_path = os.path.abspath(pl2_dll_path)
         
-        if self.platform == '32bit':
-            self.pl2_dll_file = os.path.join(self.pl2_dll_path, 'PL2FileReader.dll')
-        else:
-            self.pl2_dll_file = os.path.join(self.pl2_dll_path, 'PL2FileReader64.dll')
-        
+        # use default '32bit' dll version
+        self.pl2_dll_file = os.path.join(self.pl2_dll_path, 'PL2FileReader.dll')
+
         try:
-            self.pl2_dll = CDLL(self.pl2_dll_file)
-        except (WindowsError):
-            print("Error: Can't load PL2FileReader.dll at: " + self.pl2_dll_file)
-            print("PL2FileReader.dll is bundled with the C++ PL2 Offline Files SDK")
-            print("located on the Plexon Inc website: www.plexon.com")
-            print("Contact Plexon Support for more information: support@plexon.com")
+            self.pl2_dll = ctypes.CDLL(self.pl2_dll_file)
+        except IOError:
+            raise IOError("Error: Can't load PL2FileReader.dll at: " + self.pl2_dll_file +
+                          "PL2FileReader.dll is bundled with the C++ PL2 Offline Files SDK"
+                          "located on the Plexon Inc website: www.plexon.com"
+                          "Contact Plexon Support for more information: support@plexon.com")
     
     def pl2_open_file(self, pl2_file):
         """

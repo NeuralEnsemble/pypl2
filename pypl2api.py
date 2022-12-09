@@ -480,3 +480,70 @@ def pl2_info(filename):
     PL2Info = namedtuple('PL2Info', 'spikes events ad')
     
     return PL2Info(tuple(spike_counts), tuple(event_counts), tuple(ad_counts))
+
+
+def pl2_comments(filename):
+    """
+    Reads a PL2 file and returns comments made during the recording
+
+    Usage:
+        >>>timestamps, comments = pl2_comments(filename)
+
+    Args:
+        filename - Full path of the file
+
+    Returns:
+        timestamps - tuple of comment timestamps
+        comments - tuple of comments
+    """
+    # Create an instance of PyPL2FileReader.
+    p = PyPL2FileReader()
+
+    # Verify that the file passed exists first.
+    # Open the file.
+    handle = p.pl2_open_file(filename)
+
+    # If the handle is 0, print error message and return 0.
+    if (handle == 0):
+        print_error(p)
+        return 0
+
+    # Create instance of PL2FileInfo.
+    file_info = PL2FileInfo()
+
+    res = p.pl2_get_file_info(handle, file_info)
+
+    # If res is 0, print error message and return 0.
+    if (res == 0):
+        print_error(p)
+        return 0
+
+        # Get information about the comments in the file
+    num_comments = c_ulonglong()
+    total_number_of_comments_bytes = c_ulonglong()
+
+    p.pl2_get_comments_info(handle, num_comments, total_number_of_comments_bytes)
+
+    if num_comments.value == 0:
+        return (0,), (0,)
+
+    timestamps = (c_longlong * num_comments.value)()
+    comment_lengths = (c_ulonglong * num_comments.value)()
+    comments = (c_char * total_number_of_comments_bytes.value)()
+
+    p.pl2_get_comments(handle, timestamps, comment_lengths, comments)
+
+    timestamps_list = []
+    comments_list = []
+    offset = 0
+
+    for n in range(num_comments.value):
+        timestamps_list.append(timestamps[n] / file_info.m_TimestampFrequency)
+        tmp_comment = comments[offset:offset + (comment_lengths[n] - 1)]
+        comments_list.append(tmp_comment.decode('ascii'))
+        offset += comment_lengths[n]
+
+    # Close the file
+    p.pl2_close_file(handle)
+
+    return tuple(timestamps_list), tuple(comments_list)
