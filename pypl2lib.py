@@ -15,8 +15,17 @@ if any(platform.startswith(name) for name in ('linux', 'darwin', 'freebsd')):
     byref = CtypesSession.byref
     CDLL = ctypes.CDLL
     Structure = ctypes.Structure
-    (c_int, c_char, c_double, c_uint, c_ushort, c_short, c_ulonglong, c_longlong, Structure, POINTER) = \
-    (ctypes.c_int, ctypes.c_char, ctypes.c_double, ctypes.c_uint, ctypes.c_ushort, ctypes.c_short, ctypes.c_ulonglong, ctypes.c_longlong, ctypes.Structure, ctypes.POINTER)
+    c_uint = ctypes.c_uint
+    c_int = ctypes.c_int
+    c_char = ctypes.c_char
+    c_double = ctypes.c_double
+    c_short = ctypes.c_short
+    c_ushort = ctypes.c_ushort
+    c_ulonglong = ctypes.c_ulonglong
+    c_longlong = ctypes.c_longlong
+    Structure = ctypes.Structure
+    POINTER = ctypes.POINTER
+
 elif platform.startswith('win'):
     print('on WINDOWS')
     from ctypes import CDLL, byref, c_int, c_char, c_double, c_uint, c_ushort, c_ulonglong, Structure, POINTER, c_longlong, c_short
