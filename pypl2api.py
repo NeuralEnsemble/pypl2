@@ -10,7 +10,7 @@
 
 from collections import namedtuple
 import numpy as np
-from .pypl2lib import *
+from pypl2lib import *
 
 def print_error(pypl2_file_reader_instance):
     error_message = (c_char * 256)()
