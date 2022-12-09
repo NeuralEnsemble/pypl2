@@ -1,6 +1,8 @@
 
 # python-PL2
 
+This package is adopted from https://gitlab.com/penalab/pypl2, 9.12.2022
+
 This package is an adoption of the Plexon's "PyPL2" Python scripts to read data from Plexon's PL2<sup>(TM)</sup> file format.
 
 The aim is to make the package usable with both Python 2.7 and Python 3.6 (and above).
