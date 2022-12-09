@@ -7,16 +7,20 @@
 # You are free to modify or share this file, provided that the above
 # copyright notice is kept intact.
 
-from pypl2api import pl2_ad, pl2_spikes, pl2_events, pl2_info, pl2_comments
+import os.path
 import sys
-import os
+sys.path.append(os.path.dirname(__file__))
+
+from pypl2api import pl2_ad, pl2_spikes, pl2_events, pl2_info
+
 
 def choose_file():
     try:
         import tkinter
     except ImportError:
-        print("Tkinter not installed.")
-        exit()
+        print("Tkinter not installed. Using testing file")
+        return os.path.join(os.path.dirname(__file__), 'data', '4chDemoPL2.pl2')
+        # exit()
         
     from tkinter import filedialog
     
