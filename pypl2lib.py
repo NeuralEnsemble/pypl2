@@ -10,6 +10,7 @@
 
 from sys import platform
 if any(platform.startswith(name) for name in ('linux', 'darwin', 'freebsd')):
+    print(f'on {platform}')
     from zugbruecke import CtypesSession
     ctypes = CtypesSession(log_level=100)
     byref = CtypesSession.byref
@@ -247,6 +248,18 @@ class PyPL2FileReader:
             POINTER(c_int),
             POINTER(PL2FileInfo),
         )
+
+        self.pl2_dll.PL2_GetFileInfo.memsync = [
+            {
+                'p': [1],  # pointer argument
+                't': PL2FileInfo
+            }
+        ]
+
+        # print(file_handle)
+        # print(pl2_file_info)
+        # print(byref(pl2_file_info))
+        # breakpoint()
 
         self.result = self.pl2_dll.PL2_GetFileInfo(c_int(file_handle), byref(pl2_file_info))
         
