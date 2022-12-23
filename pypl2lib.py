@@ -294,7 +294,7 @@ class PyPL2FileReader:
             {
                 'p': [1, 'm_CreatorDateTime'],
                 'l': [1],
-                't': 'tm'
+                't': tm
             },
             {
                 'p': [1, 'm_CreatorDateTimeMilliseconds'],  # pointer argument
@@ -364,6 +364,7 @@ class PyPL2FileReader:
             },
             {
                 'p': [1, 'm_ReprocessorDateTime'],  # pointer argument
+                't': tm
             },
             {
                 'p': [1, 'm_ReprocessorDateTimeMilliseconds'],  # pointer argument
