@@ -193,18 +193,7 @@ class PyPL2FileReader:
             None
         """
 
-        self.pl2_dll.PL2_OpenFile.argtypes = (
-            POINTER(c_char)
-        )
-
-        self.pl2_dll.PL2_OpenFile.memsync = [
-            {
-                'p': [0],  # pointer argument
-                'n': True,  # null-terminated string flag
-            }
-        ]
-
-        self.pl2_dll.PL2_CloseFile(byref(file_handle))
+        self.pl2_dll.PL2_CloseFile(self.file_handle)
             
     def pl2_close_all_files(self):
         """
@@ -234,20 +223,7 @@ class PyPL2FileReader:
         """
         
         self.result = c_int(0)
-
-        self.pl2_dll.PL2_GetLastError.argtypes = (
-            POINTER(c_char),
-            POINTER(c_int),
-        )
-        self.pl2_dll.PL2_GetLastError.memsync = [
-            {
-                'p': [0],  # pointer argument
-                'n': True,  # null-terminated string flag,
-                'l': [1]
-            }
-        ]
-
-        self.result = self.pl2_dll.PL2_GetLastError(ctypes.create_string_buffer(buffer), c_int(buffer_size))
+        self.result = self.pl2_dll.PL2_GetLastError(byref(buffer), c_int(buffer_size))
         
         return self.result
     
