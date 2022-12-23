@@ -244,17 +244,18 @@ class PyPL2FileReader:
         
         self.result = c_int(0)
 
-        self.pl2_dll.PL2_GetFileInfo.argtypes = (
-            POINTER(c_int),
-            POINTER(PL2FileInfo),
-        )
+        # reintroducing artypes here causes wenv python pypl2_example.py to fail
+        # self.pl2_dll.PL2_GetFileInfo.argtypes = (
+        #     POINTER(c_int),
+        #     POINTER(PL2FileInfo),
+        # )
 
-        self.pl2_dll.PL2_GetFileInfo.memsync = [
-            {
-                'p': [1],  # pointer argument
-                't': PL2FileInfo
-            }
-        ]
+        # self.pl2_dll.PL2_GetFileInfo.memsync = [
+        #     {
+        #         'p': [1],  # pointer argument
+        #         't': PL2FileInfo
+        #     }
+        # ]
 
         # print(file_handle)
         # print(pl2_file_info)
