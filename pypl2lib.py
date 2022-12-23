@@ -272,7 +272,6 @@ class PyPL2FileReader:
             POINTER(PL2FileInfo),
         )
 
-        breakpoint()
         self.result = self.pl2_dll.PL2_GetFileInfo(c_int(file_handle), byref(pl2_file_info))
         
         return self.result
