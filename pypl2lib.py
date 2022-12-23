@@ -27,6 +27,7 @@ if any(platform.startswith(name) for name in ('linux', 'darwin', 'freebsd')):
 
 elif platform.startswith('win'):
     print('on WINDOWS')
+    import ctypes
     from ctypes import CDLL, byref, c_int, c_char, c_double, c_uint, c_ushort, c_ulonglong, Structure, POINTER, c_longlong, c_short
 else:
     raise SystemError('unsupported platform')
@@ -155,7 +156,6 @@ class PyPL2FileReader:
         
         Args:
             pl2_file - full path of the file
-            file_handle - file handle
             
         Returns:
             file_handle > 0 if success
@@ -272,114 +272,7 @@ class PyPL2FileReader:
             POINTER(PL2FileInfo),
         )
 
-        self.pl2_dll.PL2_GetFileInfo.memsync = [
-            {
-                'p': [1, 'm_CreatorComment'],  # pointer argument
-                # 'l': [256],  # length arguments
-                'n': True,  # null-terminated string flag,
-                't': 'c_char',  # array element type
-            },
-            {
-                'p': [1, 'm_CreatorSoftwareName'],  # pointer argument
-                # 'l': [64],  # length arguments
-                'n': True,
-                't': 'c_char',  # array element type
-            },
-            {
-                'p': [1, 'm_CreatorSoftwareVersion'],  # pointer argument
-                # 'l': [16],  # length arguments
-                'n': True,
-                't': 'c_char',  # array element type
-            },
-            {
-                'p': [1, 'm_CreatorDateTime'],
-                'l': [1],
-                't': tm
-            },
-            {
-                'p': [1, 'm_CreatorDateTimeMilliseconds'],  # pointer argument
-                't': 'c_int',  # array element type
-            },
-            {
-                'p': [1, 'm_TimestampFrequency'],  # pointer argument
-                't': 'c_double',  # array element type
-            },
-            {
-                'p': [1, 'm_NumberOfChannelHeaders'],  # pointer argument
-                't': 'c_uint',  # array element type
-            },
-            {
-                'p': [1, 'm_TotalNumberOfSpikeChannels'],  # pointer argument
-                't': 'c_uint',  # array element type
-            },
-            {
-                'p': [1, 'm_NumberOfRecordedSpikeChannels'],  # pointer argument
-                't': 'c_uint',  # array element type
-            },
-            {
-                'p': [1, 'm_TotalNumberOfAnalogChannels'],  # pointer argument
-                't': 'c_uint',  # array element type
-            },
-            {
-                'p': [1, 'm_NumberOFRecordedAnalogChannels'],  # pointer argument
-                't': 'c_uint',  # array element type
-            },
-            {
-                'p': [1, 'm_NumberOfDigitalChannels'],  # pointer argument
-                't': 'c_uint',  # array element type
-            },
-            {
-                'p': [1, 'm_MinimumTrodality'],  # pointer argument
-                't': 'c_uint',  # array element type
-            },
-            {
-                'p': [1, 'm_MaximumTrodality'],  # pointer argument
-                't': 'c_uint',  # array element type
-            },
-            {
-                'p': [1, 'm_NumberOfNonOmniPlexSources'],  # pointer argument
-                't': 'c_uint',  # array element type
-            },
-            {
-                'p': [1, 'm_Unused'],  # pointer argument
-                't': 'c_uint',  # array element type
-            },
-            {
-                'p': [1, 'm_ReprocessorComment'],  # pointer argument
-                # 'l': [256],  # length arguments
-                'n': True,
-                't': 'c_char',  # array element type
-            },
-            {
-                'p': [1, 'm_ReprocessorSoftwareName'],  # pointer argument
-                # 'l': [64],  # length arguments
-                'n': True,
-                't': 'c_char',  # array element type
-            },
-            {
-                'p': [1, 'm_ReprocessorSoftwareVersion'],  # pointer argument
-                # 'l': [16],  # length arguments
-                'n': True,
-                't': 'c_char',  # array element type
-            },
-            {
-                'p': [1, 'm_ReprocessorDateTime'],  # pointer argument
-                't': tm
-            },
-            {
-                'p': [1, 'm_ReprocessorDateTimeMilliseconds'],  # pointer argument
-                't': 'c_int',  # array element type
-            },
-            {
-                'p': [1, 'm_StartRecordingTime'],  # pointer argument
-                't': 'c_ulonglong',  # array element type
-            },
-            {
-                'p': [1, 'm_DurationOfRecording'],  # pointer argument
-                't': 'c_ulonglong',  # array element type
-            },
-        ]
-
+        breakpoint()
         self.result = self.pl2_dll.PL2_GetFileInfo(c_int(file_handle), byref(pl2_file_info))
         
         return self.result
