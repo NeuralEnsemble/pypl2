@@ -71,7 +71,7 @@ def pl2_ad(filename, channel):
     #Create instance of PL2FileInfo.
     file_info = PL2FileInfo()
     
-    res = p.pl2_get_file_info(handle, file_info)
+    res = p.pl2_get_file_info(file_info)
     
     #If res is 0, print error message and return 0.
     if (res == 0):
@@ -83,9 +83,9 @@ def pl2_ad(filename, channel):
 
     #Check if channel is an integer or string, and call appropriate function
     if type(channel) is int:
-        res = p.pl2_get_analog_channel_info(handle, channel, achannel_info)
+        res = p.pl2_get_analog_channel_info(channel, achannel_info)
     if type(channel) is str:
-        res = p.pl2_get_analog_channel_info_by_name(handle, channel, achannel_info)
+        res = p.pl2_get_analog_channel_info_by_name(channel, achannel_info)
         
     #If res is 0, print error message and return 0.
     if (res == 0):
@@ -102,16 +102,14 @@ def pl2_ad(filename, channel):
     
     #Check if channel is an integer or string, and call appropriate function
     if type(channel) is int:
-        res = p.pl2_get_analog_channel_data(handle,
-                                            channel,
+        res = p.pl2_get_analog_channel_data(channel,
                                             num_fragments_returned,
                                             num_data_points_returned,
                                             fragment_timestamps,
                                             fragment_counts,
                                             values)
     if type(channel) is str:
-        res = p.pl2_get_analog_channel_data_by_name(handle,
-                                                    channel,
+        res = p.pl2_get_analog_channel_data_by_name(channel,
                                                     num_fragments_returned,
                                                     num_data_points_returned,
                                                     fragment_timestamps,
@@ -124,7 +122,7 @@ def pl2_ad(filename, channel):
         return 0
     
     # Close the file
-    p.pl2_close_file(handle)
+    p.pl2_close_file()
     
     #Create a named tuple called PL2Ad.
     PL2Ad = namedtuple('PL2Ad', 'adfrequency n timestamps fragmentcounts ad')
@@ -185,7 +183,7 @@ def pl2_spikes(filename, channel, unit = []):
     #Create instance of PL2FileInfo.
     file_info = PL2FileInfo()
     
-    res = p.pl2_get_file_info(handle, file_info)
+    res = p.pl2_get_file_info(file_info)
     
     #If res is 0, print error message and return 0.
     if (res == 0):
@@ -197,9 +195,9 @@ def pl2_spikes(filename, channel, unit = []):
     
     #Check if channel is an integer or string, and call appropriate function
     if type(channel) is int:
-        res = p.pl2_get_spike_channel_info(handle, channel, schannel_info)
+        res = p.pl2_get_spike_channel_info(channel, schannel_info)
     if type(channel) is str:
-        res = p.pl2_get_spike_channel_info_by_name(handle, channel, schannel_info)
+        res = p.pl2_get_spike_channel_info_by_name(channel, schannel_info)
 
     #If res is 0, print error message and return 0.
     if (res == 0):
@@ -214,15 +212,13 @@ def pl2_spikes(filename, channel, unit = []):
     values = (c_short * (schannel_info.m_NumberOfSpikes * schannel_info.m_SamplesPerSpike))()
     
     if type(channel) is int:
-        res = p.pl2_get_spike_channel_data(handle, 
-                                           channel,
+        res = p.pl2_get_spike_channel_data(channel,
                                            num_spikes_returned,
                                            spike_timestamps,
                                            units,
                                            values)
     if type(channel) is str:
-        res = p.pl2_get_spike_channel_data_by_name(handle,
-                                                   channel,
+        res = p.pl2_get_spike_channel_data_by_name(channel,
                                                    num_spikes_returned,
                                                    spike_timestamps,
                                                    units,
@@ -234,7 +230,7 @@ def pl2_spikes(filename, channel, unit = []):
         return 0    
         
     # Close the file
-    p.pl2_close_file(handle)
+    p.pl2_close_file()
     
     #The c_short() array called 'values' is currently a one-dimensional array of 
     #waveform samples, which isn't in volts, and it's not easy to just get one
@@ -295,7 +291,7 @@ def pl2_events(filename, channel):
     #Create instance of PL2FileInfo.
     file_info = PL2FileInfo()
     
-    res = p.pl2_get_file_info(handle, file_info)
+    res = p.pl2_get_file_info(file_info)
     
     #If res is 0, print error message and return 0.
     if (res == 0):
@@ -307,9 +303,9 @@ def pl2_events(filename, channel):
 
     #Check if channel is an integer or string, and call appropriate function
     if type(channel) is int:
-        res = p.pl2_get_digital_channel_info(handle, channel, echannel_info)
+        res = p.pl2_get_digital_channel_info(channel, echannel_info)
     if type(channel) is str:
-        res = p.pl2_get_digital_channel_info_by_name(handle, channel, echannel_info)
+        res = p.pl2_get_digital_channel_info_by_name(channel, echannel_info)
     
     #If res is 0, print error message and return 0.
     if (res == 0):
@@ -323,20 +319,18 @@ def pl2_events(filename, channel):
     event_values = (c_ushort * echannel_info.m_NumberOfEvents)()
     
     if type(channel) is int:
-        res = p.pl2_get_digital_channel_data(handle,
-                                             channel,
+        res = p.pl2_get_digital_channel_data(channel,
                                              num_events_returned,
                                              event_timestamps,
                                              event_values)
     if type(channel) is str:
-        res = p.pl2_get_digital_channel_data_by_name(handle,
-                                                     channel,
+        res = p.pl2_get_digital_channel_data_by_name(channel,
                                                      num_events_returned,
                                                      event_timestamps,
                                                      event_values)
     
     # Close the file
-    p.pl2_close_file(handle)
+    p.pl2_close_file()
     
     #Create a named tuple called PL2DigitalEvents
     PL2DigitalEvents = namedtuple('PL2DigitalEvents', 'n timestamps values')
@@ -420,7 +414,7 @@ def pl2_info(filename):
     #Create instance of PL2FileInfo.
     file_info = PL2FileInfo()
     
-    res = p.pl2_get_file_info(handle, file_info)
+    res = p.pl2_get_file_info(file_info)
 
     #If res is 0, print error message and return 0.
     
@@ -441,7 +435,7 @@ def pl2_info(filename):
     #Get channel numbers, names, and unit counts for all enabled spike channels
     for i in range(file_info.m_TotalNumberOfSpikeChannels):
         schannel_info = PL2SpikeChannelInfo()
-        res = p.pl2_get_spike_channel_info(handle, i, schannel_info)
+        res = p.pl2_get_spike_channel_info(i, schannel_info)
         #If res is 0, print error message and return 0.
         if (res == 0):
             print_error(p)
@@ -453,7 +447,7 @@ def pl2_info(filename):
     #Get channel numbers, names, and counts for all event channels with data
     for i in range(file_info.m_NumberOfDigitalChannels):
         echannel_info = PL2DigitalChannelInfo()
-        res = p.pl2_get_digital_channel_info(handle, i, echannel_info)
+        res = p.pl2_get_digital_channel_info(i, echannel_info)
         #If res is 0, print error message and return 0.
         if (res == 0):
             print_error(p)
@@ -465,7 +459,7 @@ def pl2_info(filename):
     #Get channel numbers, names, and counts for all enabled spike channels
     for i in range(file_info.m_TotalNumberOfAnalogChannels):
         achannel_info = PL2AnalogChannelInfo()
-        res = p.pl2_get_analog_channel_info(handle, i, achannel_info)
+        res = p.pl2_get_analog_channel_info(i, achannel_info)
         #If res is 0, print error message and return 0.
         if (res == 0):
             print_error(p)
@@ -475,7 +469,7 @@ def pl2_info(filename):
             ad_counts.append(ad_info(achannel_info.m_Channel, achannel_info.m_Name, achannel_info.m_NumberOfValues))
     
     # Close the file
-    p.pl2_close_file(handle)
+    p.pl2_close_file()
     
     PL2Info = namedtuple('PL2Info', 'spikes events ad')
     
