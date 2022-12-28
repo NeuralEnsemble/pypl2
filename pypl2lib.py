@@ -250,18 +250,27 @@ class PyPL2FileReader:
         
         self.result = c_int(0)
 
+        # tweak Pl2FileInfo to also work with zugbruecke by
+        # replacing byte values of c_char array fields with actual c_char arrays
+        for field_name, field_dtype in pl2_file_info._fields_:
+            field_value = getattr(pl2_file_info, field_name)
+            if 'c_char_Array' in str(field_dtype) and isinstance(field_value, bytes):
+                print(field_name, field_dtype, field_value)
+                # generate new value with proper type
+                new_value = field_dtype()
+                # tranfer current field values to new value
+                new_value[:len(field_value)] = field_value
+                # overwrite value in pl2_file_info
+                setattr(pl2_file_info, field_name, new_value)
+
+        print(pl2_file_info.m_CreatorComment)
+
         # reintroducing artypes here causes wenv python pypl2_example.py to fail
         self.pl2_dll.PL2_GetFileInfo.argtypes = (
             c_int,
             POINTER(PL2FileInfo),
         )
 
-        # self.pl2_dll.PL2_GetFileInfo.memsync = [
-        #     {
-        #         'p': [1],  # pointer argument
-        #         't': PL2FileInfo
-        #     }
-        # ]
 
         # print(file_handle)
         # print(pl2_file_info)
