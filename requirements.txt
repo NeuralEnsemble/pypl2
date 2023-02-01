@@ -1,0 +1,4 @@
+zugbruecke>=0.2.1; sys_platform != 'windows'
+wenv>=0.5; sys_platform != 'windows'
+pytest>=7
+numpy
