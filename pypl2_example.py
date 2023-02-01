@@ -20,7 +20,6 @@ def choose_file():
     except ImportError:
         print("Tkinter not installed. Using testing file")
         return os.path.join(os.path.dirname(__file__), 'data', '4chDemoPL2.pl2')
-        # exit()
         
     from tkinter import filedialog
     
