@@ -15,8 +15,6 @@ from pypl2api import pl2_ad, pl2_spikes, pl2_events, pl2_info
 
 
 def choose_file():
-    # TODO: Remove this hack that always loads test data
-    return os.path.join(os.path.dirname(__file__), 'data', '4chDemoPL2.pl2')
     try:
         import tkinter
     except ImportError:
