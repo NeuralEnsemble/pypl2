@@ -13,7 +13,7 @@ import numpy as np
 from pypl2lib import *
 
 def print_error(pypl2_file_reader_instance):
-    error_message = (c_char * 256)()
+    error_message = (ctypes.c_char * 256)()
     pypl2_file_reader_instance.pl2_get_last_error(error_message, 256)
     print(error_message.value)
 
@@ -61,7 +61,7 @@ def pl2_ad(filename, channel):
     
     #Verify that the file passed exists first.
     #Open the file.
-    handle = p.pl2_open_file(filename)
+    handle = p.pl2_open_file(str(filename))
     
     #If the handle is 0, print error message and return 0.
     if (handle == 0):
@@ -94,11 +94,11 @@ def pl2_ad(filename, channel):
     
     #Set up instances of ctypes classes needed by pl2_get_analog_channel_data().
     #These will be filled in by the function.
-    num_fragments_returned = c_ulonglong(0)
-    num_data_points_returned = c_ulonglong(0)
-    fragment_timestamps = (c_longlong * achannel_info.m_MaximumNumberOfFragments)()
-    fragment_counts = (c_ulonglong * achannel_info.m_MaximumNumberOfFragments)()
-    values = (c_short * achannel_info.m_NumberOfValues)()
+    num_fragments_returned = ctypes.c_ulonglong(0)
+    num_data_points_returned = ctypes.c_ulonglong(0)
+    fragment_timestamps = (ctypes.c_longlong * achannel_info.m_MaximumNumberOfFragments)()
+    fragment_counts = (ctypes.c_ulonglong * achannel_info.m_MaximumNumberOfFragments)()
+    values = (ctypes.c_short * achannel_info.m_NumberOfValues)()
     
     #Check if channel is an integer or string, and call appropriate function
     if type(channel) is int:
@@ -173,7 +173,7 @@ def pl2_spikes(filename, channel, unit = []):
     
     #Verify that the file passed exists first.
     #Open the file.
-    handle = p.pl2_open_file(filename)
+    handle = p.pl2_open_file(str(filename))
 
     #If the handle is 0, print error message and return 0.
     if (handle == 0):
@@ -206,10 +206,10 @@ def pl2_spikes(filename, channel, unit = []):
         
     #Set up instances of ctypes classes needed by pl2_get_spike_channel_data().
     #These will be filled in by the function.
-    num_spikes_returned = c_ulonglong()
-    spike_timestamps = (c_ulonglong * schannel_info.m_NumberOfSpikes)()
-    units = (c_ushort * schannel_info.m_NumberOfSpikes)()
-    values = (c_short * (schannel_info.m_NumberOfSpikes * schannel_info.m_SamplesPerSpike))()
+    num_spikes_returned = ctypes.c_ulonglong()
+    spike_timestamps = (ctypes.c_ulonglong * schannel_info.m_NumberOfSpikes)()
+    units = (ctypes.c_ushort * schannel_info.m_NumberOfSpikes)()
+    values = (ctypes.c_short * (schannel_info.m_NumberOfSpikes * schannel_info.m_SamplesPerSpike))()
     
     if type(channel) is int:
         res = p.pl2_get_spike_channel_data(channel,
@@ -281,7 +281,7 @@ def pl2_events(filename, channel):
     
     #Verify that the file passed exists first.
     #Open the file.
-    handle = p.pl2_open_file(filename)
+    handle = p.pl2_open_file(str(filename))
 
     #If the handle is 0, print error message and return 0.
     if (handle == 0):
@@ -314,9 +314,9 @@ def pl2_events(filename, channel):
     
     #Set up instances of ctypes classes needed by pl2_get_digital_channel_data().
     #These will be filled in by the function.    
-    num_events_returned = c_ulonglong()
-    event_timestamps = (c_longlong * echannel_info.m_NumberOfEvents)()
-    event_values = (c_ushort * echannel_info.m_NumberOfEvents)()
+    num_events_returned = ctypes.c_ulonglong()
+    event_timestamps = (ctypes.c_longlong * echannel_info.m_NumberOfEvents)()
+    event_values = (ctypes.c_ushort * echannel_info.m_NumberOfEvents)()
     
     if type(channel) is int:
         res = p.pl2_get_digital_channel_data(channel,
@@ -404,7 +404,7 @@ def pl2_info(filename):
     
     #Verify that the file passed exists first.
     #Open the file.
-    handle = p.pl2_open_file(filename)
+    handle = p.pl2_open_file(str(filename))
 
     #If the handle is 0, print error message and return 0.
     if (handle == 0):
