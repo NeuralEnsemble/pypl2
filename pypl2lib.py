@@ -879,7 +879,7 @@ class PyPL2FileReader:
             ctypes.POINTER(ctypes.c_ushort * len(event_values)),
         )
 
-        print(f'{channel_name=}')
+        print(f'{channel_name}')
         self.pl2_dll.PL2_GetDigitalChannelDataByName.memsync = [
             {
                 'p': [1],  # ctypes.POINTER argument
