@@ -305,8 +305,12 @@ class PyPL2FileReader:
             ctypes.c_char * len(channel_name),
             ctypes.POINTER(PL2AnalogChannelInfo),
         )
+
+        if hasattr(channel_name, 'encode'):
+            channel_name = channel_name.encode('ascii')
+
         self.result = self.pl2_dll.PL2_GetAnalogChannelInfoByName(self.file_handle,
-                                                                  channel_name.encode('ascii'),
+                                                                  channel_name,
                                                                   ctypes.byref(
                                                                       pl2_analog_channel_info))
 
@@ -421,8 +425,11 @@ class PyPL2FileReader:
             ctypes.POINTER(ctypes.c_ulonglong * len(fragment_counts)),
             ctypes.POINTER(ctypes.c_short * len(values)),
         )
+
+        if hasattr(channel_name, 'encode'):
+            channel_name = channel_name.encode('ascii')
         self.result = self.pl2_dll.PL2_GetAnalogChannelDataByName(self.file_handle,
-                                                                  channel_name.encode('ascii'),
+                                                                  channel_name,
                                                                   ctypes.byref(
                                                                       num_fragments_returned),
                                                                   ctypes.byref(
@@ -535,8 +542,11 @@ class PyPL2FileReader:
             ctypes.POINTER(PL2SpikeChannelInfo),
         )
 
+        if hasattr(channel_name, 'encode'):
+            channel_name = channel_name.encode('ascii')
+
         self.result = self.pl2_dll.PL2_GetSpikeChannelInfoByName(self.file_handle,
-                                                                 channel_name.encode('ascii'),
+                                                                 channel_name,
                                                                  ctypes.byref(
                                                                      pl2_spike_channel_info))
 
@@ -642,8 +652,12 @@ class PyPL2FileReader:
             ctypes.POINTER(ctypes.c_ushort * len(units)),
             ctypes.POINTER(ctypes.c_short * len(values))
         )
+
+        if hasattr(channel_name, 'encode'):
+            channel_name = channel_name.encode('ascii')
+
         self.result = self.pl2_dll.PL2_GetSpikeChannelDataByName(self.file_handle,
-                                                                 channel_name.encode('ascii'),
+                                                                 channel_name,
                                                                  ctypes.byref(num_spikes_returned),
                                                                  ctypes.byref(spike_timestamps),
                                                                  ctypes.byref(units),
@@ -740,15 +754,24 @@ class PyPL2FileReader:
 
         self.result = ctypes.c_int(0)
 
-        channel_name_buffer = ctypes.create_string_buffer(channel_name.encode('ascii'))
+        if hasattr(channel_name, 'encode'):
+            channel_name = channel_name.encode('ascii')
+
         self.pl2_dll.PL2_GetDigitalChannelInfoByName.argtypes = (
             ctypes.c_int,
-            ctypes.c_char * len(channel_name_buffer),
+            ctypes.c_char * len(channel_name),
             ctypes.POINTER(PL2DigitalChannelInfo),
         )
 
+        self.pl2_dll.PL2_GetDigitalChannelInfoByName.memsync = [
+            {
+                'p': [1],  # ctypes.POINTER argument
+                'n': True,  # null-terminated string flag
+            }
+        ]
         self.result = self.pl2_dll.PL2_GetDigitalChannelInfoByName(self.file_handle,
-                                                                   channel_name_buffer,
+                                                                   ctypes.create_string_buffer(
+                                                                       channel_name),
                                                                    ctypes.byref(
                                                                        pl2_digital_channel_info))
 
@@ -841,22 +864,35 @@ class PyPL2FileReader:
 
         self.result = ctypes.c_int(0)
 
-        channel_name_buffer = ctypes.create_string_buffer(channel_name.encode('ascii'))
+        if hasattr(channel_name, 'encode'):
+            channel_name = channel_name.encode('ascii')
+        channel_name_buffer = ctypes.create_string_buffer(channel_name)
+
+        print(f'event timestamp length: {len(event_timestamps)}')
+        print(f'event value length: {len(event_values)}')
 
         self.pl2_dll.PL2_GetDigitalChannelDataByName.argtypes = (
             ctypes.c_int,
-            ctypes.c_char * len(channel_name_buffer),
+            ctypes.POINTER(ctypes.c_char),
             ctypes.POINTER(ctypes.c_ulonglong),
             ctypes.POINTER(ctypes.c_longlong * len(event_timestamps)),
             ctypes.POINTER(ctypes.c_ushort * len(event_values)),
         )
 
-        self.result = self.pl2_dll.PL2_GetDigitalChannelDataByName(self.file_handle,
-                                                                   channel_name_buffer,
-                                                                   ctypes.byref(
-                                                                       num_events_returned),
-                                                                   ctypes.byref(event_timestamps),
-                                                                   ctypes.byref(event_values))
+        print(f'{channel_name=}')
+        self.pl2_dll.PL2_GetDigitalChannelDataByName.memsync = [
+            {
+                'p': [1],  # ctypes.POINTER argument
+                'n': True,  # null-terminated string flag
+            }
+        ]
+        self.result = self.pl2_dll.PL2_GetDigitalChannelDataByName(
+            self.file_handle,
+            channel_name_buffer,
+            ctypes.byref(num_events_returned),
+            ctypes.byref(event_timestamps),
+            ctypes.byref(event_values)
+        )
 
         return self.result
 

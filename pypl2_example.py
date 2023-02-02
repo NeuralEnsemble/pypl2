@@ -47,6 +47,9 @@ if __name__ == "__main__":
     #Get file info and print out interesting information
     spkinfo, evtinfo, adinfo = pl2_info(filename)
 
+    print(evtinfo[0].name)
+
+
     print("\nContinuous A/D Channel Info from pl2_info()")
     print("\n# Channel Name\tCount")
     print("- ------------\t-----")
@@ -110,7 +113,7 @@ if __name__ == "__main__":
 
     for n in range(len(evtinfo)):
         evt = pl2_events(filename, evtinfo[n].name)
-        print("{:<7} {:<16} {}".format(evtinfo[n].name.decode(), evt.n, evt.timestamps[0:1]))
+        print("{:<7} {:<16} {}".format(evtinfo[n].name, evt.n, evt.timestamps[0:1]))
 
     #Get strobed event data and print out interesting information
     strobedevt = pl2_events(filename, 'Strobed')
