@@ -98,8 +98,8 @@ def pl2_ad(filename, channel):
 
     # Set up instances of ctypes classes needed by pl2_get_analog_channel_data().
     # These will be filled in by the function.
-    num_fragments_returned = ctypes.c_ulonglong(0)
-    num_data_points_returned = ctypes.c_ulonglong(0)
+    num_fragments_returned = ctypes.c_ulonglong(achannel_info.m_MaximumNumberOfFragments)
+    num_data_points_returned = ctypes.c_ulonglong(achannel_info.m_NumberOfValues)
     fragment_timestamps = (ctypes.c_longlong * achannel_info.m_MaximumNumberOfFragments)()
     fragment_counts = (ctypes.c_ulonglong * achannel_info.m_MaximumNumberOfFragments)()
     values = (ctypes.c_short * achannel_info.m_NumberOfValues)()
@@ -119,6 +119,9 @@ def pl2_ad(filename, channel):
                                                     fragment_timestamps,
                                                     fragment_counts,
                                                     values)
+
+    assert achannel_info.m_MaximumNumberOfFragments >= num_fragments_returned.value
+    assert achannel_info.m_NumberOfValues >= num_data_points_returned.value
 
     # If res is 0, print error message and return 0.
     if (res == 0):
@@ -211,7 +214,7 @@ def pl2_spikes(filename, channel, unit=[]):
 
         # Set up instances of ctypes classes needed by pl2_get_spike_channel_data().
     # These will be filled in by the function.
-    num_spikes_returned = ctypes.c_ulonglong()
+    num_spikes_returned = ctypes.c_ulonglong(schannel_info.m_NumberOfSpikes)
     spike_timestamps = (ctypes.c_ulonglong * schannel_info.m_NumberOfSpikes)()
     units = (ctypes.c_ushort * schannel_info.m_NumberOfSpikes)()
     values = (ctypes.c_short * (
@@ -229,6 +232,8 @@ def pl2_spikes(filename, channel, unit=[]):
                                                    spike_timestamps,
                                                    units,
                                                    values)
+
+    assert schannel_info.m_NumberOfSpikes == num_spikes_returned.value
 
     # If res is 0, print error message and return 0.
     if (res == 0):
@@ -321,7 +326,7 @@ def pl2_events(filename, channel):
 
     # Set up instances of ctypes classes needed by pl2_get_digital_channel_data().
     # These will be filled in by the function.
-    num_events_returned = ctypes.c_ulonglong()
+    num_events_returned = ctypes.c_ulonglong(echannel_info.m_NumberOfEvents)
     event_timestamps = (ctypes.c_longlong * echannel_info.m_NumberOfEvents)()
     event_values = (ctypes.c_ushort * echannel_info.m_NumberOfEvents)()
 
@@ -335,6 +340,8 @@ def pl2_events(filename, channel):
                                                      num_events_returned,
                                                      event_timestamps,
                                                      event_values)
+
+    assert echannel_info.m_NumberOfEvents == num_events_returned.value
 
     # Close the file
     p.pl2_close_file()
