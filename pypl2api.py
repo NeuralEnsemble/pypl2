@@ -65,7 +65,7 @@ def pl2_ad(filename, channel):
 
     # Verify that the file passed exists first.
     # Open the file.
-    handle = p.pl2_open_file(str(filename))
+    handle = p.pl2_open_file(filename)
 
     # If the handle is 0, print error message and return 0.
     if (handle == 0):
@@ -181,7 +181,7 @@ def pl2_spikes(filename, channel, unit=[]):
 
     # Verify that the file passed exists first.
     # Open the file.
-    handle = p.pl2_open_file(str(filename))
+    handle = p.pl2_open_file(filename)
 
     # If the handle is 0, print error message and return 0.
     if (handle == 0):
@@ -293,7 +293,7 @@ def pl2_events(filename, channel):
 
     # Verify that the file passed exists first.
     # Open the file.
-    handle = p.pl2_open_file(str(filename))
+    handle = p.pl2_open_file(filename)
 
     # If the handle is 0, print error message and return 0.
     if (handle == 0):
@@ -419,7 +419,7 @@ def pl2_info(filename):
 
     # Verify that the file passed exists first.
     # Open the file.
-    handle = p.pl2_open_file(str(filename))
+    handle = p.pl2_open_file(filename)
 
     # If the handle is 0, print error message and return 0.
     if (handle == 0):
