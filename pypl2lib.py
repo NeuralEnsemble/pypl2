@@ -9,6 +9,7 @@
 # copyright notice is kept intact.
 
 from sys import platform
+import pathlib
 
 if any(platform.startswith(name) for name in ('linux', 'darwin', 'freebsd')):
     from zugbruecke import CtypesSession
@@ -156,6 +157,8 @@ class PyPL2FileReader:
             file_handle = 0 if failure
             
         """
+        if isinstance(pl2_file, pathlib.Path):
+            pl2_file = str(pl2_file)
         self.file_handle = ctypes.c_int(0)
         self.result = ctypes.c_int(0)
         self.pl2_dll.PL2_OpenFile.argtypes = (
