@@ -348,13 +348,14 @@ class PyPL2FileReader:
             ctypes.c_int,
             ctypes.POINTER(PL2AnalogChannelInfo),
         )
-        self.result = self.pl2_dll.PL2_GetAnalogChannelInfoBySource(
+
+        result = self.pl2_dll.PL2_GetAnalogChannelInfoBySource(
             self.file_handle,
             ctypes.c_int(source_id),
             ctypes.c_int(one_based_channel_index_in_source),
             ctypes.byref(pl2_analog_channel_info))
 
-        return self.result
+        return result
 
     def pl2_get_analog_channel_data(self, zero_based_channel_index, num_fragments_returned,
                                     num_data_points_returned, fragment_timestamps, fragment_counts,
@@ -638,20 +639,19 @@ class PyPL2FileReader:
             The instance of PL2SpikeChannelInfo passed to function is filled with channel info
         """
 
-        self.result = ctypes.c_int(0)
         self.pl2_dll.PL2_GetSpikeChannelInfoBySource.argtypes = (
             ctypes.c_int,
             ctypes.c_int,
             ctypes.c_int,
             ctypes.POINTER(PL2SpikeChannelInfo),
         )
-        self.result = self.pl2_dll.PL2_GetSpikeChannelInfoBySource(
+        result = self.pl2_dll.PL2_GetSpikeChannelInfoBySource(
             self.file_handle,
             ctypes.c_int(source_id),
             ctypes.c_int(one_based_channel_index_in_source),
             ctypes.byref(pl2_spike_channel_info))
 
-        return self.result
+        return result
 
     def pl2_get_spike_channel_data(self, zero_based_channel_index, num_spikes_returned,
                                    spike_timestamps, units, values):
