@@ -342,8 +342,7 @@ class PyPL2FileReader:
             The instance of PL2AnalogChannelInfo is filled with channel info
         """
 
-        self.result = ctypes.c_int(0)
-        self.pl2_dll.PL2_GetAnalogChannelInfoByName.argtypes = (
+        self.pl2_dll.PL2_GetAnalogChannelInfoBySource.argtypes = (
             ctypes.c_int,
             ctypes.c_int,
             ctypes.c_int,
