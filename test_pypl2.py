@@ -3,6 +3,7 @@ import sys
 import subprocess
 import difflib
 import pathlib
+import pytest
 
 from pypl2api import pl2_ad, pl2_spikes, pl2_events, pl2_info
 from pypl2lib import PyPL2FileReader, PL2FileInfo, PL2SpikeChannelInfo, PL2DigitalChannelInfo, PL2AnalogChannelInfo
@@ -71,7 +72,27 @@ def test_compare_loading_wenv_zugbruecke():
         os.remove(f)
 
 
-def test_compare_FileReader_methods():
+def assert_object_fields_are_equal(*objects):
+    assert len(objects)
+    assert all([o._fields_ == objects[0]._fields_ for o in objects])
+
+    for attr_name, attr_type in objects[0]._fields_:
+
+        values = [getattr(o, attr_name) for o in objects]
+
+        # compare non-character arrays item-by-item
+        if 'c_char' not in str(attr_type) and '_Array_' in str(attr_type):
+            for idx in range(len(values[0])):
+                assert all([v[idx] == values[0][idx] for v in values[1:]])
+            continue
+
+        if not all([v == values[0] for v in values[1:]]):
+            print('here!')
+
+        assert all([v == values[0] for v in values[1:]])
+
+@pytest.fixture()
+def reader_and_file_info():
     # Get file infos
     filename = pathlib.Path(__file__).parent / 'data' / '4chDemoPL2.pl2'
     reader = PyPL2FileReader()
@@ -79,42 +100,97 @@ def test_compare_FileReader_methods():
 
     file_info = PL2FileInfo()
     reader.pl2_get_file_info(file_info)
+    return reader, file_info
 
-    print('iuae')
 
+def test_compare_FileReader_SpikeChannelInfo(reader_and_file_info):
+    reader, file_info = reader_and_file_info
 
     for i in range(file_info.m_TotalNumberOfSpikeChannels):
         # loading channel info via index, name and source methods
-        schannel_info_by_index = PL2SpikeChannelInfo()
-        schannel_info_by_name = PL2SpikeChannelInfo()
-        schannel_info_by_source = PL2SpikeChannelInfo()
+        channel_info_by_index = PL2SpikeChannelInfo()
+        channel_info_by_name = PL2SpikeChannelInfo()
+        channel_info_by_source = PL2SpikeChannelInfo()
 
-        reader.pl2_get_spike_channel_info(i, schannel_info_by_index)
-        channel_name = schannel_info_by_index.m_Name
-        source_id = schannel_info_by_index.m_Source
+        reader.pl2_get_spike_channel_info(i, channel_info_by_index)
+        channel_name = channel_info_by_index.m_Name
+        source_id = channel_info_by_index.m_Source
+        channel_id_in_source = channel_info_by_index.m_Channel
 
-        reader.pl2_get_spike_channel_info_by_name(channel_name, schannel_info_by_name)
-        reader.pl2_get_spike_channel_info_by_source(source_id, i+1, schannel_info_by_source)
+        reader.pl2_get_spike_channel_info_by_name(channel_name, channel_info_by_name)
+        reader.pl2_get_spike_channel_info_by_source(source_id, channel_id_in_source, channel_info_by_source)
 
         # comparing results
-        for attr_name, attr_type in schannel_info_by_index._fields_:
+        assert_object_fields_are_equal(channel_info_by_index, channel_info_by_name, channel_info_by_source)
 
-            value_by_index = getattr(schannel_info_by_index, attr_name)
-            value_by_name = getattr(schannel_info_by_name, attr_name)
-            value_by_source = getattr(schannel_info_by_source, attr_name)
 
-            # compare non-character array item-by-item
-            if 'c_char' not in str(attr_type) and '_Array_' in str(attr_type):
-                for idx in range(len(value_by_index)):
-                    assert value_by_index[idx] == value_by_name[idx] == value_by_source[idx]
-                continue
+def test_compare_FileReader_AnalogChannelInfo(reader_and_file_info):
+    reader, file_info = reader_and_file_info
 
-            assert value_by_index == value_by_name == value_by_source
+    for i in range(file_info.m_TotalNumberOfAnalogChannels):
+        # loading channel info via index, name and source methods
+        channel_info_by_index = PL2AnalogChannelInfo()
+        channel_info_by_name = PL2AnalogChannelInfo()
+        channel_info_by_source = PL2AnalogChannelInfo()
 
+        reader.pl2_get_analog_channel_info(i, channel_info_by_index)
+        channel_name = channel_info_by_index.m_Name
+        source_id = channel_info_by_index.m_Source
+        channel_id_in_source = channel_info_by_index.m_Channel
+
+        reader.pl2_get_analog_channel_info_by_name(channel_name, channel_info_by_name)
+        reader.pl2_get_analog_channel_info_by_source(source_id, channel_id_in_source, channel_info_by_source)
+
+        # comparing results
+        assert_object_fields_are_equal(channel_info_by_index, channel_info_by_name,
+                                       channel_info_by_source)
+
+
+def test_compare_FileReader_DigitalChannelInfo(reader_and_file_info):
+    reader, file_info = reader_and_file_info
+
+    for i in range(file_info.m_NumberOfDigitalChannels):
+        # loading channel info via index, name and source methods
+        channel_info_by_index = PL2DigitalChannelInfo()
+        channel_info_by_name = PL2DigitalChannelInfo()
+        channel_info_by_source = PL2DigitalChannelInfo()
+
+        reader.pl2_get_digital_channel_info(i, channel_info_by_index)
+        channel_name = channel_info_by_index.m_Name
+        source_id = channel_info_by_index.m_Source
+        channel_id_in_source = channel_info_by_index.m_Channel
+
+        reader.pl2_get_digital_channel_info_by_name(channel_name, channel_info_by_name)
+        reader.pl2_get_digital_channel_info_by_source(source_id, channel_id_in_source,
+                                                     channel_info_by_source)
+
+        # comparing results
+        assert_object_fields_are_equal(channel_info_by_index, channel_info_by_name,
+                                       channel_info_by_source)
+
+    def test_compare_FileReader_DigitalChannelInfo(reader_and_file_info):
+        reader, file_info = reader_and_file_info
+
+        for i in range(file_info.m_NumberOfDigitalChannels):
+            # loading channel info via index, name and source methods
+            channel_info_by_index = PL2DigitalChannelInfo()
+            channel_info_by_name = PL2DigitalChannelInfo()
+            channel_info_by_source = PL2DigitalChannelInfo()
+
+            reader.pl2_get_digital_channel_info(i, channel_info_by_index)
+            channel_name = channel_info_by_index.m_Name
+            source_id = channel_info_by_index.m_Source
+            channel_id_in_source = channel_info_by_index.m_Channel
+
+            reader.pl2_get_digital_channel_info_by_name(channel_name, channel_info_by_name)
+            reader.pl2_get_digital_channel_info_by_source(source_id, channel_id_in_source,
+                                                          channel_info_by_source)
+
+            # comparing results
+            assert_object_fields_are_equal(channel_info_by_index, channel_info_by_name,
+                                           channel_info_by_source)
 
     # TODO: Also compare other methods:
     # reader.pl2_get_spike_channel_data()
-    # reader.pl2_get_analog_channel_info()
     # reader.pl2_get_analog_channel_data()
-    # reader.pl2_get_digital_channel_info()
     # reader.pl2_get_digital_channel_data()
