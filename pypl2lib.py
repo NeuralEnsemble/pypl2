@@ -10,6 +10,7 @@
 
 from sys import platform
 import pathlib
+import warnings
 
 if any(platform.startswith(name) for name in ('linux', 'darwin', 'freebsd')):
     from zugbruecke import CtypesSession
@@ -177,6 +178,9 @@ class PyPL2FileReader:
             ctypes.byref(self.file_handle),
         )
 
+        # check if spiking data can be loaded using zugbruecke
+        self._check_spike_channel_data_consistency()
+
         return self.file_handle.value
 
     def pl2_close_file(self):
@@ -235,6 +239,35 @@ class PyPL2FileReader:
                                                     ctypes.c_int(buffer_size))
 
         return self.result
+
+    def _check_spike_channel_data_consistency(self):
+        """
+        Check if all spiking channels use the same number of samples per
+        waveform. Only in this case can zugbruecke reliably load spiking data
+        """
+
+        file_info = PL2FileInfo()
+        self.pl2_get_file_info(file_info)
+
+        if not file_info.m_TotalNumberOfSpikeChannels:
+            return
+
+        # extract samples per spike of first channel
+        channel_info = PL2SpikeChannelInfo()
+        self.pl2_get_spike_channel_info(0, channel_info)
+        n_samples_per_spike = channel_info.m_SamplesPerSpike
+
+        # compare with all other channels
+        for i in range(1, file_info.m_TotalNumberOfSpikeChannels):
+            channel_info = PL2SpikeChannelInfo()
+            self.pl2_get_spike_channel_info(i, channel_info)
+
+            if channel_info.m_SamplesPerSpike != n_samples_per_spike:
+                warnings.warn('The spike channels contain different number of samples per spike. '
+                              'Spiking data can probably not be loaded using zugbruecke. '
+                              'Use a windows operating system or remove the offending channels '
+                              'from the file.')
+                return
 
     def pl2_get_file_info(self, pl2_file_info):
         """
@@ -675,7 +708,7 @@ class PyPL2FileReader:
         self.result = ctypes.c_int(0)
 
         # extracting m_SamplesPerSpike to prepare data reading
-        # TODO: This solution only works if all channels have the same number of samples per spike
+        # This solution only works if all channels have the same number of samples per spike
         # as ctypes / zugbruecke is caching the memsync attribute once defined once
         spike_info = PL2SpikeChannelInfo()
         self.pl2_get_spike_channel_info(zero_based_channel_index, spike_info)
@@ -748,7 +781,7 @@ class PyPL2FileReader:
         )
 
         # extracting m_SamplesPerSpike to prepare data reading
-        # TODO: This solution only works if all channels have the same number of samples per spike
+        # This solution only works if all channels have the same number of samples per spike
         # as ctypes / zugbruecke is caching the memsync attribute once defined once
         spike_info = PL2SpikeChannelInfo()
         self.pl2_get_spike_channel_info_by_name(channel_name, spike_info)
@@ -822,7 +855,7 @@ class PyPL2FileReader:
         )
 
         # extracting m_SamplesPerSpike to prepare data reading
-        # TODO: This solution only works if all channels have the same number of samples per spike
+        # This solution only works if all channels have the same number of samples per spike
         # as ctypes / zugbruecke is caching the memsync attribute once defined once
         spike_info = PL2SpikeChannelInfo()
         self.pl2_get_spike_channel_info_by_source(source_id, one_based_channel_index_in_source, spike_info)
