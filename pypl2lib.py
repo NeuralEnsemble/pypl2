@@ -526,10 +526,6 @@ class PyPL2FileReader:
 
         self.pl2_dll.PL2_GetAnalogChannelDataBySource.memsync = [
             {
-                'p': [1],
-                'n': True,  # null-terminated string flag
-            },
-            {
                 'p': [5],
                 'l': [3],
                 't': ctypes.c_longlong
@@ -819,10 +815,10 @@ class PyPL2FileReader:
             ctypes.c_int,
             ctypes.c_int,
             ctypes.c_int,
-            ctypes.c_ulonglong,
-            ctypes.POINTER(ctypes.c_ulonglong * len(spike_timestamps)),
-            ctypes.POINTER(ctypes.c_ushort * len(units)),
-            ctypes.POINTER(ctypes.c_short * len(values)),
+            ctypes.POINTER(ctypes.c_ulonglong),
+            ctypes.POINTER(ctypes.c_ulonglong),
+            ctypes.POINTER(ctypes.c_ushort),
+            ctypes.POINTER(ctypes.c_short),
         )
 
         # extracting m_SamplesPerSpike to prepare data reading
@@ -993,8 +989,7 @@ class PyPL2FileReader:
             ctypes.POINTER(ctypes.c_short),
         )
 
-
-        self.pl2_dll.PL2_GetDigitalChannelDatae.memsync = [
+        self.pl2_dll.PL2_GetDigitalChannelData.memsync = [
             {
                 'p': [3],
                 'l': [2],
