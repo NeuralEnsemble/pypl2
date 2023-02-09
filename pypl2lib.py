@@ -281,8 +281,6 @@ class PyPL2FileReader:
             The instance of PL2FileInfo passed to function is filled with file info
         """
 
-        result = ctypes.c_int(0)
-
         self.pl2_dll.PL2_GetFileInfo.argtypes = (
             ctypes.c_int,
             ctypes.POINTER(PL2FileInfo),
@@ -305,8 +303,6 @@ class PyPL2FileReader:
             0 - Failure
             The instance of PL2AnalogChannelInfo passed to function is filled with channel info
         """
-
-        result = ctypes.c_int(0)
 
         self.pl2_dll.PL2_GetAnalogChannelInfo.argtypes = (
             ctypes.c_int,
@@ -334,7 +330,6 @@ class PyPL2FileReader:
             The instance of PL2AnalogChannelInfo is filled with channel info
         """
 
-        result = ctypes.c_int(0)
         self.pl2_dll.PL2_GetAnalogChannelInfoByName.argtypes = (
             ctypes.c_int,
             ctypes.POINTER(ctypes.c_char),
@@ -410,7 +405,6 @@ class PyPL2FileReader:
             The class instances passed to the function are filled with values
         """
 
-        result = ctypes.c_int(0)
 
         self.pl2_dll.PL2_GetAnalogChannelData.argtypes = (
             ctypes.c_int,
@@ -474,7 +468,6 @@ class PyPL2FileReader:
             The class instances passed to the function are filled with values
         """
 
-        result = ctypes.c_int(0)
         self.pl2_dll.PL2_GetAnalogChannelDataByName.argtypes = (
             ctypes.c_int,
             ctypes.POINTER(ctypes.c_char),
@@ -545,7 +538,6 @@ class PyPL2FileReader:
             The class instances passed to the function are filled with values
         """
 
-        result = ctypes.c_int(0)
         self.pl2_dll.PL2_GetAnalogChannelDataBySource.argtypes = (
             ctypes.c_int,
             ctypes.c_int,
@@ -601,8 +593,6 @@ class PyPL2FileReader:
             The instance of PL2SpikeChannelInfo passed to function is filled with channel info
         """
 
-        result = ctypes.c_int(0)
-
         self.pl2_dll.PL2_GetSpikeChannelInfo.argtypes = (
             ctypes.c_int,
             ctypes.c_int,
@@ -629,8 +619,6 @@ class PyPL2FileReader:
             0 - Failure
             The instance of PL2SpikeChannelInfo passed to function is filled with channel info
         """
-
-        result = ctypes.c_int(0)
 
         self.pl2_dll.PL2_GetSpikeChannelInfoByName.argtypes = (
             ctypes.c_int,
@@ -704,8 +692,6 @@ class PyPL2FileReader:
             The class instances passed to the function are filled with values
         """
 
-        result = ctypes.c_int(0)
-
         # extracting m_SamplesPerSpike to prepare data reading
         # This solution only works if all channels have the same number of samples per spike
         # as ctypes / zugbruecke is caching the memsync attribute once defined once
@@ -769,7 +755,6 @@ class PyPL2FileReader:
             The class instances passed to the function are filled with values
         """
 
-        result = ctypes.c_int(0)
         self.pl2_dll.PL2_GetSpikeChannelDataByName.argtypes = (
             ctypes.c_int,
             ctypes.c_char,
@@ -841,8 +826,6 @@ class PyPL2FileReader:
             The class instances passed to the function are filled with values
         """
 
-        result = ctypes.c_int(0)
-
         self.pl2_dll.PL2_GetSpikeChannelDataBySource.argtypes = (
             ctypes.c_int,
             ctypes.c_int,
@@ -904,8 +887,6 @@ class PyPL2FileReader:
             The instance of PL2DigitalChannelInfo passed to function is filled with channel info
         """
 
-        result = ctypes.c_int(0)
-
         self.pl2_dll.PL2_GetDigitalChannelInfo.argtypes = (
             ctypes.c_int,
             ctypes.c_int,
@@ -934,8 +915,6 @@ class PyPL2FileReader:
             0 - Failure
             The instance of PL2DigitalChannelInfo passed to function is filled with channel info
         """
-
-        result = ctypes.c_int(0)
 
         if hasattr(channel_name, 'encode'):
             channel_name = channel_name.encode('ascii')
@@ -977,7 +956,6 @@ class PyPL2FileReader:
             The instance of PL2DigitalChannelInfo passed to function is filled with channel info
         """
 
-        result = ctypes.c_int(0)
         self.pl2_dll.PL2_GetDigitalChannelInfoBySource.argtypes = (
             ctypes.c_int,
             ctypes.c_int,
@@ -1010,8 +988,6 @@ class PyPL2FileReader:
             0 - Failure
             The class instances passed to the function are filled with values
         """
-
-        result = ctypes.c_int(0)
 
         self.pl2_dll.PL2_GetDigitalChannelData.argtypes = (
             ctypes.c_int,
@@ -1060,8 +1036,6 @@ class PyPL2FileReader:
             0 - Failure
             The class instances passed to the function are filled with values
         """
-
-        result = ctypes.c_int(0)
 
         if hasattr(channel_name, 'encode'):
             channel_name = channel_name.encode('ascii')
@@ -1118,7 +1092,6 @@ class PyPL2FileReader:
             The class instances passed to the function are filled with values
         """
 
-        result = ctypes.c_int(0)
         self.pl2_dll.PL2_GetDigitalChannelDataBySource.argtypes = (
             ctypes.c_int,
             ctypes.c_int,
@@ -1165,7 +1138,6 @@ class PyPL2FileReader:
             The class instances passed to the function are filled with values
         """
 
-        result = ctypes.c_int(0)
         self.pl2_dll.PL2_GetStartStopChannelInfo.argtypes = (
             ctypes.c_int,
             ctypes.POINTER(ctypes.c_ulonglong)
@@ -1194,7 +1166,6 @@ class PyPL2FileReader:
             The class instances passed to the function are filled with values
         """
 
-        result = ctypes.c_int()
         self.pl2_dll.PL2_GetStartStopChannelInfo.argtypes = (
             ctypes.c_int,
             ctypes.POINTER(ctypes.c_ulonglong),
