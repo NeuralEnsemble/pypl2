@@ -67,14 +67,11 @@ def pl2_ad(filename, channel):
     p.pl2_open_file(filename)
     p.pl2_get_file_info()
 
-    # Create instance of PL2AnalogChannelInfo.
-    achannel_info = PL2AnalogChannelInfo()
-
     # Check if channel is an integer or string, and call appropriate function
     if type(channel) is int:
-        res = p.pl2_get_analog_channel_info(channel, achannel_info)
+        achannel_info = p.pl2_get_analog_channel_info(channel)
     if type(channel) in (str, bytes):
-        res = p.pl2_get_analog_channel_info_by_name(channel, achannel_info)
+        achannel_info = p.pl2_get_analog_channel_info_by_name(channel)
 
     # Set up instances of ctypes classes needed by pl2_get_analog_channel_data().
     # These will be filled in by the function.
@@ -163,9 +160,9 @@ def pl2_spikes(filename, channel, unit=[]):
 
     # Check if channel is an integer or string, and call appropriate function
     if type(channel) is int:
-        res = p.pl2_get_spike_channel_info(channel, schannel_info)
+        schannel_info = p.pl2_get_spike_channel_info(channel)
     if type(channel) in (str, bytes):
-        res = p.pl2_get_spike_channel_info_by_name(channel, schannel_info)
+        schannel_info = p.pl2_get_spike_channel_info_by_name(channel)
 
     # Set up instances of ctypes classes needed by pl2_get_spike_channel_data().
     # These will be filled in by the function.
@@ -246,14 +243,11 @@ def pl2_events(filename, channel):
     p.pl2_open_file(filename)
     p.pl2_get_file_info()
 
-    # Create an instance of PL2DigitalChannelInfo.
-    echannel_info = PL2DigitalChannelInfo()
-
     # Check if channel is an integer or string, and call appropriate function
     if type(channel) is int:
-        res = p.pl2_get_digital_channel_info(channel, echannel_info)
+        echannel_info = p.pl2_get_digital_channel_info(channel)
     if type(channel) in (str, bytes):
-        res = p.pl2_get_digital_channel_info_by_name(channel, echannel_info)
+        echannel_info = p.pl2_get_digital_channel_info_by_name(channel)
 
     # Set up instances of ctypes classes needed by pl2_get_digital_channel_data().
     # These will be filled in by the function.
@@ -365,8 +359,7 @@ def pl2_info(filename):
 
     # Get channel numbers, names, and unit counts for all enabled spike channels
     for i in range(p.pl2_file_info.m_TotalNumberOfSpikeChannels):
-        schannel_info = PL2SpikeChannelInfo()
-        res = p.pl2_get_spike_channel_info(i, schannel_info)
+        schannel_info = p.pl2_get_spike_channel_info(i)
 
         if schannel_info.m_ChannelEnabled:
             spike_counts.append(spike_info(schannel_info.m_Channel, schannel_info.m_Name.decode('ascii'),
@@ -374,8 +367,7 @@ def pl2_info(filename):
 
     # Get channel numbers, names, and counts for all event channels with data
     for i in range(p.pl2_file_info.m_NumberOfDigitalChannels):
-        echannel_info = PL2DigitalChannelInfo()
-        res = p.pl2_get_digital_channel_info(i, echannel_info)
+        echannel_info = p.pl2_get_digital_channel_info(i)
 
         if echannel_info.m_NumberOfEvents:
             event_counts.append(event_info(echannel_info.m_Channel, echannel_info.m_Name.decode('ascii'),
@@ -383,8 +375,7 @@ def pl2_info(filename):
 
     # Get channel numbers, names, and counts for all enabled spike channels
     for i in range(p.pl2_file_info.m_TotalNumberOfAnalogChannels):
-        achannel_info = PL2AnalogChannelInfo()
-        res = p.pl2_get_analog_channel_info(i, achannel_info)
+        achannel_info = p.pl2_get_analog_channel_info(i)
 
         if achannel_info.m_ChannelEnabled:
             ad_counts.append(ad_info(achannel_info.m_Channel, achannel_info.m_Name.decode('ascii'),

@@ -23,7 +23,6 @@ else:
     raise SystemError('unsupported platform')
 
 import os
-import platform
 
 
 class tm(ctypes.Structure):
@@ -243,14 +242,12 @@ class PyPL2FileReader:
             return
 
         # extract samples per spike of first channel
-        channel_info = PL2SpikeChannelInfo()
-        self.pl2_get_spike_channel_info(0, channel_info)
+        channel_info = self.pl2_get_spike_channel_info(0)
         n_samples_per_spike = channel_info.m_SamplesPerSpike
 
         # compare with all other channels
         for i in range(1, self.pl2_file_info.m_TotalNumberOfSpikeChannels):
-            channel_info = PL2SpikeChannelInfo()
-            self.pl2_get_spike_channel_info(i, channel_info)
+            channel_info = self.pl2_get_spike_channel_info(i)
 
             if channel_info.m_SamplesPerSpike != n_samples_per_spike:
                 warnings.warn('The spike channels contain different number of samples per spike. '
@@ -283,18 +280,15 @@ class PyPL2FileReader:
 
         return self.pl2_file_info
 
-    def pl2_get_analog_channel_info(self, zero_based_channel_index, pl2_analog_channel_info):
+    def pl2_get_analog_channel_info(self, zero_based_channel_index):
         """
         Retrieve information about an analog channel
         
         Args:
             zero_based_channel_index - zero-based analog channel index
-            pl2_analog_channel_info - PL2AnalogChannelInfo class instance
         
         Returns:
-            1 - Success
-            0 - Failure
-            The instance of PL2AnalogChannelInfo passed to function is filled with channel info
+            pl2_analog_channel_info - PL2AnalogChannelInfo class instance
         """
 
         self.pl2_dll.PL2_GetAnalogChannelInfo.argtypes = (
@@ -303,24 +297,26 @@ class PyPL2FileReader:
             ctypes.POINTER(PL2AnalogChannelInfo),
         )
 
+        pl2_analog_channel_info = PL2AnalogChannelInfo()
         result = self.pl2_dll.PL2_GetAnalogChannelInfo(self._file_handle,
                                                        ctypes.c_int(zero_based_channel_index),
                                                        ctypes.byref(pl2_analog_channel_info))
 
-        return result
+        if not result:
+            self._print_error()
+            return None
 
-    def pl2_get_analog_channel_info_by_name(self, channel_name, pl2_analog_channel_info):
+        return pl2_analog_channel_info
+
+    def pl2_get_analog_channel_info_by_name(self, channel_name):
         """
         Retrieve information about an analog channel
         
         Args:
             channel_name - analog channel name
-            pl2_analog_channel_info - PL2AnalogChannelInfo class instance
         
         Returns:
-            1 - Success
-            0 - Failure        
-            The instance of PL2AnalogChannelInfo is filled with channel info
+            pl2_analog_channel_info - PL2AnalogChannelInfo class instance
         """
 
         self.pl2_dll.PL2_GetAnalogChannelInfoByName.argtypes = (
@@ -339,27 +335,27 @@ class PyPL2FileReader:
         if hasattr(channel_name, 'encode'):
             channel_name = channel_name.encode('ascii')
 
+        pl2_analog_channel_info = PL2AnalogChannelInfo()
+
         result = self.pl2_dll.PL2_GetAnalogChannelInfoByName(self._file_handle,
                                                              channel_name,
                                                              ctypes.byref(pl2_analog_channel_info))
 
-        return result
+        if not result:
+            self._print_error()
+            return None
+        return pl2_analog_channel_info
 
-    def pl2_get_analog_channel_info_by_source(self, source_id, one_based_channel_index_in_source,
-                                              pl2_analog_channel_info):
+    def pl2_get_analog_channel_info_by_source(self, source_id, one_based_channel_index_in_source):
         """
         Retrieve information about an analog channel
         
         Args:
-            _file_handle - file handle
             source_id - numeric source ID
             one_based_channel_index_in_source - one-based channel index within the source
-            pl2_analog_channel_info - PL2AnalogChannelInfo class instance
         
         Returns:
-            1 - Success
-            0 - Failure        
-            The instance of PL2AnalogChannelInfo is filled with channel info
+            pl2_analog_channel_info - PL2AnalogChannelInfo class instance
         """
 
         self.pl2_dll.PL2_GetAnalogChannelInfoBySource.argtypes = (
@@ -369,13 +365,18 @@ class PyPL2FileReader:
             ctypes.POINTER(PL2AnalogChannelInfo),
         )
 
+        pl2_analog_channel_info = PL2AnalogChannelInfo()
         result = self.pl2_dll.PL2_GetAnalogChannelInfoBySource(
             self._file_handle,
             ctypes.c_int(source_id),
             ctypes.c_int(one_based_channel_index_in_source),
             ctypes.byref(pl2_analog_channel_info))
 
-        return result
+        if not result:
+            self._print_error()
+            return None
+
+        return pl2_analog_channel_info
 
     def pl2_get_analog_channel_data(self, zero_based_channel_index, num_fragments_returned,
                                     num_data_points_returned, fragment_timestamps, fragment_counts,
@@ -571,20 +572,18 @@ class PyPL2FileReader:
 
         return result
 
-    def pl2_get_spike_channel_info(self, zero_based_channel_index, pl2_spike_channel_info):
+    def pl2_get_spike_channel_info(self, zero_based_channel_index):
         """
         Retrieve information about a spike channel
         
         Args:
-            _file_handle - file handle
             zero_based_channel_index - zero-based spike channel index
-            pl2_spike_channel_info - PL2SpikeChannelInfo class instance
         
         Returns:
-            1 - Success
-            0 - Failure
-            The instance of PL2SpikeChannelInfo passed to function is filled with channel info
+            pl2_spike_channel_info - PL2SpikeChannelInfo class instance
         """
+
+        pl2_spike_channel_info = PL2SpikeChannelInfo()
 
         self.pl2_dll.PL2_GetSpikeChannelInfo.argtypes = (
             ctypes.c_int,
@@ -596,21 +595,21 @@ class PyPL2FileReader:
                                                       ctypes.c_int(zero_based_channel_index),
                                                       ctypes.byref(pl2_spike_channel_info))
 
-        return result
+        if not result:
+            self._print_error()
+            return None
 
-    def pl2_get_spike_channel_info_by_name(self, channel_name, pl2_spike_channel_info):
+        return pl2_spike_channel_info
+
+    def pl2_get_spike_channel_info_by_name(self, channel_name):
         """
         Retrieve information about a spike channel
         
         Args:
-            _file_handle - file handle
             channel_name - spike channel name
-            pl2_spike_channel_info - PL2SpikeChannelInfo class instance
         
         Returns:
-            1 - Success
-            0 - Failure
-            The instance of PL2SpikeChannelInfo passed to function is filled with channel info
+            pl2_spike_channel_info - PL2SpikeChannelInfo class instance
         """
 
         self.pl2_dll.PL2_GetSpikeChannelInfoByName.argtypes = (
@@ -629,28 +628,31 @@ class PyPL2FileReader:
             }
         ]
 
+        pl2_spike_channel_info = PL2SpikeChannelInfo()
+
         result = self.pl2_dll.PL2_GetSpikeChannelInfoByName(self._file_handle,
                                                             channel_name,
                                                             ctypes.byref(pl2_spike_channel_info))
 
-        return result
+        if not result:
+            self._print_error()
+            return None
 
-    def pl2_get_spike_channel_info_by_source(self, source_id, one_based_channel_index_in_source,
-                                             pl2_spike_channel_info):
+        return pl2_spike_channel_info
+
+    def pl2_get_spike_channel_info_by_source(self, source_id, one_based_channel_index_in_source):
         """
         Retrieve information about a spike channel
         
         Args:
-            _file_handle - file handle
             source_id - numeric source ID
             one_based_channel_index_in_source - one-based channel index within the source
-            pl2_spike_channel_info - PL2SpikeChannelInfo class instance
         
         Returns:
-            1 - Success
-            0 - Failure
-            The instance of PL2SpikeChannelInfo passed to function is filled with channel info
+            pl2_spike_channel_info - PL2SpikeChannelInfo class instance
         """
+
+        pl2_spike_channel_info = PL2SpikeChannelInfo()
 
         self.pl2_dll.PL2_GetSpikeChannelInfoBySource.argtypes = (
             ctypes.c_int,
@@ -664,7 +666,11 @@ class PyPL2FileReader:
             ctypes.c_int(one_based_channel_index_in_source),
             ctypes.byref(pl2_spike_channel_info))
 
-        return result
+        if not result:
+            self._print_error()
+            return None
+
+        return pl2_spike_channel_info
 
     def pl2_get_spike_channel_data(self, zero_based_channel_index, num_spikes_returned,
                                    spike_timestamps, units, values):
@@ -688,8 +694,7 @@ class PyPL2FileReader:
         # extracting m_SamplesPerSpike to prepare data reading
         # This solution only works if all channels have the same number of samples per spike
         # as ctypes / zugbruecke is caching the memsync attribute once defined once
-        spike_info = PL2SpikeChannelInfo()
-        self.pl2_get_spike_channel_info(zero_based_channel_index, spike_info)
+        spike_info = self.pl2_get_spike_channel_info(zero_based_channel_index)
         samples_per_spike = spike_info.m_SamplesPerSpike
 
         self.pl2_dll.PL2_GetSpikeChannelData.argtypes = (
@@ -760,8 +765,7 @@ class PyPL2FileReader:
         # extracting m_SamplesPerSpike to prepare data reading
         # This solution only works if all channels have the same number of samples per spike
         # as ctypes / zugbruecke is caching the memsync attribute once defined once
-        spike_info = PL2SpikeChannelInfo()
-        self.pl2_get_spike_channel_info_by_name(channel_name, spike_info)
+        spike_info = self.pl2_get_spike_channel_info_by_name(channel_name)
         samples_per_spike = spike_info.m_SamplesPerSpike
 
         self.pl2_dll.PL2_GetSpikeChannelDataByName.memsync = [
@@ -832,8 +836,7 @@ class PyPL2FileReader:
         # extracting m_SamplesPerSpike to prepare data reading
         # This solution only works if all channels have the same number of samples per spike
         # as ctypes / zugbruecke is caching the memsync attribute once defined once
-        spike_info = PL2SpikeChannelInfo()
-        self.pl2_get_spike_channel_info_by_source(source_id, one_based_channel_index_in_source, spike_info)
+        spike_info = self.pl2_get_spike_channel_info_by_source(source_id, one_based_channel_index_in_source)
         samples_per_spike = spike_info.m_SamplesPerSpike
 
         self.pl2_dll.PL2_GetSpikeChannelDataBySource.memsync = [
@@ -865,19 +868,15 @@ class PyPL2FileReader:
 
         return result
 
-    def pl2_get_digital_channel_info(self, zero_based_channel_index, pl2_digital_channel_info):
+    def pl2_get_digital_channel_info(self, zero_based_channel_index):
         """
         Retrieve information about a digital event channel
         
         Args:
-            _file_handle - file handle
             zero_based_channel_index - zero-based digital event channel index
-            pl2_digital_channel_info - PL2DigitalChannelInfo class instance
         
         Returns:
-            1 - Success
-            0 - Failure
-            The instance of PL2DigitalChannelInfo passed to function is filled with channel info
+            pl2_digital_channel_info - PL2DigitalChannelInfo class instance
         """
 
         self.pl2_dll.PL2_GetDigitalChannelInfo.argtypes = (
@@ -886,27 +885,29 @@ class PyPL2FileReader:
             ctypes.POINTER(PL2DigitalChannelInfo),
         )
 
+        pl2_digital_channel_info = PL2DigitalChannelInfo()
+
         result = self.pl2_dll.PL2_GetDigitalChannelInfo(
             self._file_handle,
             ctypes.c_int(zero_based_channel_index),
             ctypes.byref(pl2_digital_channel_info)
         )
 
-        return result
+        if not result:
+            self._print_error()
+            return None
 
-    def pl2_get_digital_channel_info_by_name(self, channel_name, pl2_digital_channel_info):
+        return pl2_digital_channel_info
+
+    def pl2_get_digital_channel_info_by_name(self, channel_name):
         """
         Retrieve information about a digital event channel
         
         Args:
-            _file_handle - file handle
             channel_name - digital event channel name
-            pl2_digital_channel_info - PL2DigitalChannelInfo class instance
         
         Returns:
-            1 - Success
-            0 - Failure
-            The instance of PL2DigitalChannelInfo passed to function is filled with channel info
+            pl2_digital_channel_info - PL2DigitalChannelInfo class instance
         """
 
         if hasattr(channel_name, 'encode'):
@@ -924,29 +925,31 @@ class PyPL2FileReader:
                 'n': True,  # null-terminated string flag
             }
         ]
+
+        pl2_digital_channel_info = PL2DigitalChannelInfo()
+
         result = self.pl2_dll.PL2_GetDigitalChannelInfoByName(
             self._file_handle,
             channel_name,
             ctypes.byref(pl2_digital_channel_info)
         )
 
-        return result
+        if not result:
+            self._print_error()
+            return None
 
-    def pl2_get_digital_channel_info_by_source(self, source_id, one_based_channel_index_in_source,
-                                               pl2_digital_channel_info):
+        return pl2_digital_channel_info
+
+    def pl2_get_digital_channel_info_by_source(self, source_id, one_based_channel_index_in_source):
         """
         Retrieve information about a digital event channel
         
         Args:
-            _file_handle - file handle
             source_id - numeric source ID
             one_based_channel_index_in_source - one-based channel index within the source
-            pl2_digital_channel_info - PL2DigitalChannelInfo class instance
         
         Returns:
-            1 - Success
-            0 - Failure
-            The instance of PL2DigitalChannelInfo passed to function is filled with channel info
+            pl2_digital_channel_info - PL2DigitalChannelInfo class instance
         """
 
         self.pl2_dll.PL2_GetDigitalChannelInfoBySource.argtypes = (
@@ -955,6 +958,9 @@ class PyPL2FileReader:
             ctypes.c_int,
             ctypes.POINTER(PL2DigitalChannelInfo),
         )
+
+        pl2_digital_channel_info = PL2DigitalChannelInfo
+
         result = self.pl2_dll.PL2_GetDigitalChannelInfoBySource(
             self._file_handle,
             ctypes.c_int(source_id),
@@ -962,7 +968,11 @@ class PyPL2FileReader:
             ctypes.byref(pl2_digital_channel_info)
         )
 
-        return result
+        if not result:
+            self._print_error()
+            return None
+
+        return pl2_digital_channel_info
 
     def pl2_get_digital_channel_data(self, zero_based_channel_index, num_events_returned,
                                      event_timestamps, event_values):

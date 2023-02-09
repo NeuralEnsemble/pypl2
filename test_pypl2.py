@@ -123,18 +123,15 @@ def test_compare_FileReader_SpikeChannelInfo(reader_and_file_info):
 
     for i in range(file_info.m_TotalNumberOfSpikeChannels):
         # loading channel info via index, name and source methods
-        channel_info_by_index = PL2SpikeChannelInfo()
-        channel_info_by_name = PL2SpikeChannelInfo()
-        channel_info_by_source = PL2SpikeChannelInfo()
+        channel_info_by_index = reader.pl2_get_spike_channel_info(i)
 
-        reader.pl2_get_spike_channel_info(i, channel_info_by_index)
         channel_name = channel_info_by_index.m_Name
         source_id = channel_info_by_index.m_Source
         channel_id_in_source = channel_info_by_index.m_Channel
 
-        reader.pl2_get_spike_channel_info_by_name(channel_name, channel_info_by_name)
-        reader.pl2_get_spike_channel_info_by_source(source_id, channel_id_in_source,
-                                                    channel_info_by_source)
+        channel_info_by_name = reader.pl2_get_spike_channel_info_by_name(channel_name)
+        channel_info_by_source = reader.pl2_get_spike_channel_info_by_source(source_id,
+                                                                             channel_id_in_source)
 
         # comparing results
         assert_object_fields_are_equal(channel_info_by_index, channel_info_by_name,
@@ -146,18 +143,14 @@ def test_compare_FileReader_AnalogChannelInfo(reader_and_file_info):
 
     for i in range(file_info.m_TotalNumberOfAnalogChannels):
         # loading channel info via index, name and source methods
-        channel_info_by_index = PL2AnalogChannelInfo()
-        channel_info_by_name = PL2AnalogChannelInfo()
-        channel_info_by_source = PL2AnalogChannelInfo()
+        channel_info_by_index = reader.pl2_get_analog_channel_info(i)
 
-        reader.pl2_get_analog_channel_info(i, channel_info_by_index)
         channel_name = channel_info_by_index.m_Name
         source_id = channel_info_by_index.m_Source
         channel_id_in_source = channel_info_by_index.m_Channel
 
-        reader.pl2_get_analog_channel_info_by_name(channel_name, channel_info_by_name)
-        reader.pl2_get_analog_channel_info_by_source(source_id, channel_id_in_source,
-                                                     channel_info_by_source)
+        channel_info_by_name = reader.pl2_get_analog_channel_info_by_name(channel_name)
+        channel_info_by_source = reader.pl2_get_analog_channel_info_by_source(source_id, channel_id_in_source)
 
         # comparing results
         assert_object_fields_are_equal(channel_info_by_index, channel_info_by_name,
@@ -169,18 +162,14 @@ def test_compare_FileReader_DigitalChannelInfo(reader_and_file_info):
 
     for i in range(file_info.m_NumberOfDigitalChannels):
         # loading channel info via index, name and source methods
-        channel_info_by_index = PL2DigitalChannelInfo()
-        channel_info_by_name = PL2DigitalChannelInfo()
-        channel_info_by_source = PL2DigitalChannelInfo()
+        channel_info_by_index = reader.pl2_get_digital_channel_info(i, channel_info_by_index)
 
-        reader.pl2_get_digital_channel_info(i, channel_info_by_index)
         channel_name = channel_info_by_index.m_Name
         source_id = channel_info_by_index.m_Source
         channel_id_in_source = channel_info_by_index.m_Channel
 
-        reader.pl2_get_digital_channel_info_by_name(channel_name, channel_info_by_name)
-        reader.pl2_get_digital_channel_info_by_source(source_id, channel_id_in_source,
-                                                      channel_info_by_source)
+        channel_info_by_name = reader.pl2_get_digital_channel_info_by_name(channel_name)
+        channel_info_by_source = reader.pl2_get_digital_channel_info_by_source(source_id, channel_id_in_source)
 
         # comparing results
         assert_object_fields_are_equal(channel_info_by_index, channel_info_by_name,
@@ -192,8 +181,7 @@ def test_compare_FileReader_spike_data(reader_and_file_info):
 
     for i in range(file_info.m_TotalNumberOfSpikeChannels):
         # loading channel info via index, name and source methods
-        channel_info = PL2SpikeChannelInfo()
-        reader.pl2_get_spike_channel_info(i, channel_info)
+        channel_info = reader.pl2_get_spike_channel_info(i)
         channel_name = channel_info.m_Name
         source_id = channel_info.m_Source
         channel_id_in_source = channel_info.m_Channel
