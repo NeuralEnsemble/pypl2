@@ -130,7 +130,7 @@ class PyPL2FileReader:
         Returns:
             None
         """
-        self.platform = platform.architecture()[0]
+        self.file_handle = ctypes.c_int(0)
         if pl2_dll_path is None:
             pl2_dll_path = os.path.join(os.path.split(__file__)[0], 'bin')
         self.pl2_dll_path = os.path.abspath(pl2_dll_path)
@@ -160,7 +160,6 @@ class PyPL2FileReader:
         """
         if isinstance(pl2_file, pathlib.Path):
             pl2_file = str(pl2_file)
-        self.file_handle = ctypes.c_int(0)
         self.pl2_dll.PL2_OpenFile.argtypes = (
             ctypes.POINTER(ctypes.c_char),
             ctypes.POINTER(ctypes.c_int),
