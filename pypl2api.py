@@ -394,13 +394,7 @@ def pl2_info(filename):
 
     # Verify that the file passed exists first.
     # Open the file.
-    handle = p.pl2_open_file(filename)
-
-    # If the handle is 0, print error message and return 0.
-    if (handle == 0):
-        print_error(p)
-        return 0
-
+    p.pl2_open_file(filename)
     file_info = p.pl2_get_file_info()
 
     # Lists that will be filled with tuples

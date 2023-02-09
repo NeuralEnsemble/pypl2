@@ -176,10 +176,14 @@ class PyPL2FileReader:
             ctypes.byref(self.file_handle),
         )
 
+        # If the handle is 0, print error message and return 0.
+        if result == 0:
+            self.print_error()
+            return None
+
         # check if spiking data can be loaded using zugbruecke
         self._check_spike_channel_data_consistency()
 
-        return self.file_handle.value
 
     def pl2_close_file(self):
         """
