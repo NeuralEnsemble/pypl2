@@ -226,16 +226,17 @@ class PyPL2FileReader:
 
         self.pl2_dll.PL2_GetLastError.argtypes = (
             ctypes.POINTER(ctypes.c_char),
-            ctypes.POINTER(ctypes.c_char),
+            ctypes.c_int,
         )
-        self.pl2_dll.PL2_OpenFile.memsync = [
+        self.pl2_dll.PL2_GetLastError.memsync = [
             {
-                'p': [0],  # ctypes.POINTER argument
-                'l': [1],  # length argument
+                'p': [0],
+                'l': [1],
+                't': ctypes.c_char
             }
         ]
 
-        self.result = self.pl2_dll.PL2_GetLastError(ctypes.byref(buffer),
+        self.result = self.pl2_dll.PL2_GetLastError(buffer,
                                                     ctypes.c_int(buffer_size))
 
         return self.result
