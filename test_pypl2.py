@@ -108,20 +108,18 @@ def assert_object_fields_are_equal(*objects):
 
 
 @pytest.fixture()
-def reader_and_file_info():
+def reader():
     # Get file infos
     filename = pathlib.Path(__file__).parent / 'data' / '4chDemoPL2.pl2'
     reader = PyPL2FileReader()
     reader.pl2_open_file(filename)
 
-    file_info = reader.pl2_get_file_info()
-    return reader, file_info
+    return reader
 
 
-def test_compare_FileReader_SpikeChannelInfo(reader_and_file_info):
-    reader, file_info = reader_and_file_info
+def test_compare_FileReader_SpikeChannelInfo(reader):
 
-    for i in range(file_info.m_TotalNumberOfSpikeChannels):
+    for i in range(reader.pl2_file_info.m_TotalNumberOfSpikeChannels):
         # loading channel info via index, name and source methods
         channel_info_by_index = reader.pl2_get_spike_channel_info(i)
 
@@ -138,10 +136,9 @@ def test_compare_FileReader_SpikeChannelInfo(reader_and_file_info):
                                        channel_info_by_source)
 
 
-def test_compare_FileReader_AnalogChannelInfo(reader_and_file_info):
-    reader, file_info = reader_and_file_info
+def test_compare_FileReader_AnalogChannelInfo(reader):
 
-    for i in range(file_info.m_TotalNumberOfAnalogChannels):
+    for i in range(reader.pl2_file_info.m_TotalNumberOfAnalogChannels):
         # loading channel info via index, name and source methods
         channel_info_by_index = reader.pl2_get_analog_channel_info(i)
 
@@ -157,12 +154,11 @@ def test_compare_FileReader_AnalogChannelInfo(reader_and_file_info):
                                        channel_info_by_source)
 
 
-def test_compare_FileReader_DigitalChannelInfo(reader_and_file_info):
-    reader, file_info = reader_and_file_info
+def test_compare_FileReader_DigitalChannelInfo(reader):
 
-    for i in range(file_info.m_NumberOfDigitalChannels):
+    for i in range(reader.pl2_file_info.m_NumberOfDigitalChannels):
         # loading channel info via index, name and source methods
-        channel_info_by_index = reader.pl2_get_digital_channel_info(i, channel_info_by_index)
+        channel_info_by_index = reader.pl2_get_digital_channel_info(i)
 
         channel_name = channel_info_by_index.m_Name
         source_id = channel_info_by_index.m_Source
@@ -176,10 +172,9 @@ def test_compare_FileReader_DigitalChannelInfo(reader_and_file_info):
                                        channel_info_by_source)
 
 
-def test_compare_FileReader_spike_data(reader_and_file_info):
-    reader, file_info = reader_and_file_info
+def test_compare_FileReader_spike_data(reader):
 
-    for i in range(file_info.m_TotalNumberOfSpikeChannels):
+    for i in range(reader.pl2_file_info.m_TotalNumberOfSpikeChannels):
         # loading channel info via index, name and source methods
         channel_info = reader.pl2_get_spike_channel_info(i)
         channel_name = channel_info.m_Name
@@ -230,13 +225,11 @@ def test_compare_FileReader_spike_data(reader_and_file_info):
         np.testing.assert_array_equal(values['index'], values['name'])
 
 
-def test_compare_FileReader_digital_data(reader_and_file_info):
-    reader, file_info = reader_and_file_info
+def test_compare_FileReader_digital_data(reader):
 
-    for i in range(file_info.m_NumberOfDigitalChannels):
+    for i in range(reader.pl2_file_info.m_NumberOfDigitalChannels):
         # loading channel info via index, name and source methods
-        channel_info = PL2DigitalChannelInfo()
-        reader.pl2_get_digital_channel_info(i, channel_info)
+        channel_info = reader.pl2_get_digital_channel_info(i)
         channel_name = channel_info.m_Name
         source_id = channel_info.m_Source
         channel_id_in_source = channel_info.m_Channel
@@ -276,13 +269,11 @@ def test_compare_FileReader_digital_data(reader_and_file_info):
         np.testing.assert_array_equal(event_values['index'], event_values['name'])
 
 
-def test_compare_FileReader_analog_data(reader_and_file_info):
-    reader, file_info = reader_and_file_info
+def test_compare_FileReader_analog_data(reader):
 
-    for i in range(file_info.m_TotalNumberOfAnalogChannels):
+    for i in range(reader.pl2_file_info.m_TotalNumberOfAnalogChannels):
         # loading channel info via index, name and source methods
-        channel_info = PL2AnalogChannelInfo()
-        reader.pl2_get_analog_channel_info(i, channel_info)
+        channel_info = reader.pl2_get_analog_channel_info(i)
         channel_name = channel_info.m_Name
         source_id = channel_info.m_Source
         channel_id_in_source = channel_info.m_Channel
@@ -296,38 +287,19 @@ def test_compare_FileReader_analog_data(reader_and_file_info):
         values = {}
 
         for mode in ['index', 'name', 'source']:
-            num_fragments_returned[mode] = ctypes.c_ulonglong(n_frag)
-            num_data_points_returned[mode] = ctypes.c_ulonglong(channel_info.m_NumberOfValues)
             fragment_timestamps[mode] = (ctypes.c_longlong * n_frag)()
             fragment_counts[mode] = (ctypes.c_ulonglong * n_frag)()
             values[mode] = (ctypes.c_short * channel_info.m_NumberOfValues)()
 
         # Check if channel is an integer or string, and call appropriate function
-        reader.pl2_get_analog_channel_data(i,
-                                           num_fragments_returned['index'],
-                                           num_data_points_returned['index'],
-                                           fragment_timestamps['index'],
-                                           fragment_counts['index'],
-                                           values['index'])
-        reader.pl2_get_analog_channel_data_by_name(channel_name,
-                                                   num_fragments_returned['name'],
-                                                   num_data_points_returned['name'],
-                                                   fragment_timestamps['name'],
-                                                   fragment_counts['name'],
-                                                   values['name'])
+        res = reader.pl2_get_analog_channel_data(i)
+        fragment_timestamps['index'], fragment_counts['index'], values['index'] = res
 
-        reader.pl2_get_analog_channel_data_by_source(source_id, channel_id_in_source,
-                                                     num_fragments_returned['source'],
-                                                     num_data_points_returned['source'],
-                                                     fragment_timestamps['source'],
-                                                     fragment_counts['source'],
-                                                     values['source'])
+        res = reader.pl2_get_analog_channel_data_by_name(channel_name)
+        fragment_timestamps['name'], fragment_counts['name'], values['name'] = res
 
-        assert num_fragments_returned['index'].value == num_fragments_returned['name'].value == \
-               num_fragments_returned['source'].value
-
-        assert num_data_points_returned['index'].value == num_data_points_returned['name'].value == \
-               num_data_points_returned['source'].value
+        reader.pl2_get_analog_channel_data_by_source(source_id, channel_id_in_source)
+        fragment_timestamps['source'], fragment_counts['source'], values['source'] = res
 
         # compare times, counts and value arrays between methods
         np.testing.assert_array_equal(fragment_timestamps['index'], fragment_timestamps['name'])

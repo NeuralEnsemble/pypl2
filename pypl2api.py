@@ -9,9 +9,6 @@
 # copyright notice is kept intact.
 
 from collections import namedtuple
-
-import numpy as np
-
 from pypl2lib import *
 
 
@@ -19,15 +16,6 @@ def print_error(pypl2_file_reader_instance):
     error_message = (ctypes.c_char * 256)()
     pypl2_file_reader_instance.pl2_get_last_error(error_message, 256)
     print(error_message.value)
-
-
-def to_array(c_array):
-    return np.ctypeslib.as_array(c_array)
-
-
-def to_array_nonzero(c_array):
-    a = np.ctypeslib.as_array(c_array)
-    return a[np.where(a)]
 
 
 def pl2_ad(filename, channel):
@@ -73,32 +61,11 @@ def pl2_ad(filename, channel):
     if type(channel) in (str, bytes):
         achannel_info = p.pl2_get_analog_channel_info_by_name(channel)
 
-    # Set up instances of ctypes classes needed by pl2_get_analog_channel_data().
-    # These will be filled in by the function.
-    num_fragments_returned = ctypes.c_ulonglong(achannel_info.m_MaximumNumberOfFragments)
-    num_data_points_returned = ctypes.c_ulonglong(achannel_info.m_NumberOfValues)
-    fragment_timestamps = (ctypes.c_longlong * achannel_info.m_MaximumNumberOfFragments)()
-    fragment_counts = (ctypes.c_ulonglong * achannel_info.m_MaximumNumberOfFragments)()
-    values = (ctypes.c_short * achannel_info.m_NumberOfValues)()
-
     # Check if channel is an integer or string, and call appropriate function
     if type(channel) is int:
-        res = p.pl2_get_analog_channel_data(channel,
-                                            num_fragments_returned,
-                                            num_data_points_returned,
-                                            fragment_timestamps,
-                                            fragment_counts,
-                                            values)
+        fragment_timestamps, fragment_counts, values = p.pl2_get_analog_channel_data(channel)
     if type(channel) in (str, bytes):
-        res = p.pl2_get_analog_channel_data_by_name(channel,
-                                                    num_fragments_returned,
-                                                    num_data_points_returned,
-                                                    fragment_timestamps,
-                                                    fragment_counts,
-                                                    values)
-
-    assert achannel_info.m_MaximumNumberOfFragments >= num_fragments_returned.value
-    assert achannel_info.m_NumberOfValues >= num_data_points_returned.value
+        fragment_timestamps, fragment_counts, values  = p.pl2_get_analog_channel_data_by_name(channel)
 
     # Close the file
     p.pl2_close_file()
@@ -108,7 +75,7 @@ def pl2_ad(filename, channel):
 
     # Fill in and return named tuple.
     return PL2Ad(achannel_info.m_SamplesPerSecond,
-                 num_data_points_returned.value,
+                 len(values),
                  to_array_nonzero(fragment_timestamps) / p.pl2_file_info.m_TimestampFrequency,
                  to_array_nonzero(fragment_counts),
                  to_array(values) * achannel_info.m_CoeffToConvertToUnits)

@@ -9,6 +9,7 @@
 # copyright notice is kept intact.
 
 from sys import platform
+import os
 import pathlib
 import warnings
 
@@ -22,7 +23,7 @@ elif platform.startswith('win'):
 else:
     raise SystemError('unsupported platform')
 
-import os
+import numpy as np
 
 
 class tm(ctypes.Structure):
@@ -110,6 +111,15 @@ class PL2DigitalChannelInfo(ctypes.Structure):
                 ("m_ChannelEnabled", ctypes.c_uint),
                 ("m_ChannelRecordingEnabled", ctypes.c_uint),
                 ("m_NumberOfEvents", ctypes.c_ulonglong)]
+
+
+def to_array(c_array):
+    return np.ctypeslib.as_array(c_array)
+
+
+def to_array_nonzero(c_array):
+    a = np.ctypeslib.as_array(c_array)
+    return a[np.where(a)]
 
 
 class PyPL2FileReader:
@@ -378,27 +388,26 @@ class PyPL2FileReader:
 
         return pl2_analog_channel_info
 
-    def pl2_get_analog_channel_data(self, zero_based_channel_index, num_fragments_returned,
-                                    num_data_points_returned, fragment_timestamps, fragment_counts,
-                                    values):
+    def pl2_get_analog_channel_data(self, zero_based_channel_index):
         """
         Retrieve analog channel data
         
         Args:
-            _file_handle - file handle
             zero_based_channel_index - zero based channel index
-            num_fragments_returned - ctypes.c_ulonglong class instance
-            num_data_points_returned - ctypes.c_ulonglong class instance
-            fragment_timestamps - ctypes.c_longlong class instance array the size of PL2AnalogChannelInfo.m_MaximumNumberOfFragments
-            fragment_counts - ctypes.c_ulonglong class instance array the size of PL2AnalogChannelInfo.m_MaximumNumberOfFragments
-            values - ctypes.c_short class instance array the size of PL2AnalogChannelInfo.m_NumberOfValues
             
         Returns:
-            1 - Success
-            0 - Failure
-            The class instances passed to the function are filled with values
+            fragment_timestamps - array the size of PL2AnalogChannelInfo.m_MaximumNumberOfFragments
+            fragment_counts - array the size of PL2AnalogChannelInfo.m_MaximumNumberOfFragments
+            values - array the size of PL2AnalogChannelInfo.m_NumberOfValues
         """
 
+        achannel_info = self.pl2_get_analog_channel_info(zero_based_channel_index)
+
+        num_fragments_returned = ctypes.c_ulonglong(achannel_info.m_MaximumNumberOfFragments)
+        num_data_points_returned = ctypes.c_ulonglong(achannel_info.m_NumberOfValues)
+        fragment_timestamps = (ctypes.c_longlong * achannel_info.m_MaximumNumberOfFragments)()
+        fragment_counts = (ctypes.c_ulonglong * achannel_info.m_MaximumNumberOfFragments)()
+        values = (ctypes.c_short * achannel_info.m_NumberOfValues)()
 
         self.pl2_dll.PL2_GetAnalogChannelData.argtypes = (
             ctypes.c_int,
@@ -436,31 +445,38 @@ class PyPL2FileReader:
                                                        fragment_counts,
                                                        values)
 
-        return result
+        if not result:
+            self._print_error()
+            return None
+
+        return to_array(fragment_timestamps), to_array(fragment_counts), to_array(values)
 
     def pl2_get_analog_channel_data_subset(self):
         pass
 
-    def pl2_get_analog_channel_data_by_name(self, channel_name, num_fragments_returned,
-                                            num_data_points_returned, fragment_timestamps,
-                                            fragment_counts, values):
+    def pl2_get_analog_channel_data_by_name(self, channel_name):
         """
         Retrieve analog channel data
         
         Args:
-            _file_handle - file handle
             channel_name - analog channel name
-            num_fragments_returned - ctypes.c_ulonglong class instance
-            num_data_points_returned - ctypes.c_ulonglong class instance
-            fragment_timestamps - ctypes.c_longlong class instance array the size of PL2AnalogChannelInfo.m_MaximumNumberOfFragments
-            fragment_counts - ctypes.c_ulonglong class instance array the size of PL2AnalogChannelInfo.m_MaximumNumberOfFragments
-            values - ctypes.c_short class instance array the size of PL2AnalogChannelInfo.m_NumberOfValues
             
         Returns:
-            1 - Success
-            0 - Failure
-            The class instances passed to the function are filled with values
+            fragment_timestamps - array the size of PL2AnalogChannelInfo.m_MaximumNumberOfFragments
+            fragment_counts - array the size of PL2AnalogChannelInfo.m_MaximumNumberOfFragments
+            values - array the size of PL2AnalogChannelInfo.m_NumberOfValues
         """
+        
+        if hasattr(channel_name, 'encode'):
+            channel_name = channel_name.encode('ascii')
+
+        achannel_info = self.pl2_get_analog_channel_info_by_name(channel_name)
+
+        num_fragments_returned = ctypes.c_ulonglong(achannel_info.m_MaximumNumberOfFragments)
+        num_data_points_returned = ctypes.c_ulonglong(achannel_info.m_NumberOfValues)
+        fragment_timestamps = (ctypes.c_longlong * achannel_info.m_MaximumNumberOfFragments)()
+        fragment_counts = (ctypes.c_ulonglong * achannel_info.m_MaximumNumberOfFragments)()
+        values = (ctypes.c_short * achannel_info.m_NumberOfValues)()
 
         self.pl2_dll.PL2_GetAnalogChannelDataByName.argtypes = (
             ctypes.c_int,
@@ -494,11 +510,6 @@ class PyPL2FileReader:
             }
         ]
 
-
-
-        if hasattr(channel_name, 'encode'):
-            channel_name = channel_name.encode('ascii')
-
         result = self.pl2_dll.PL2_GetAnalogChannelDataByName(
             self._file_handle,
             channel_name,
@@ -508,29 +519,33 @@ class PyPL2FileReader:
             fragment_counts,
             values)
 
-        return result
+        if not result:
+            self._print_error()
+            return None
+        
+        return to_array(fragment_timestamps), to_array(fragment_counts), to_array(values)
 
-    def pl2_get_analog_channel_data_by_source(self, source_id, one_based_channel_index_in_source,
-                                              num_fragments_returned, num_data_points_returned,
-                                              fragment_timestamps, fragment_counts, values):
+    def pl2_get_analog_channel_data_by_source(self, source_id, one_based_channel_index_in_source):
         """
         Retrieve analog channel data
         
         Args:
-            _file_handle - file handle
             source_id - numeric source ID
             one_based_channel_index_in_source - one-based channel index within the source
-            num_fragments_returned - ctypes.c_ulonglong class instance
-            num_data_points_returned - ctypes.c_ulonglong class instance
-            fragment_timestamps - ctypes.c_longlong class instance array the size of PL2AnalogChannelInfo.m_MaximumNumberOfFragments
-            fragment_counts - ctypes.c_ulonglong class instance array the size of PL2AnalogChannelInfo.m_MaximumNumberOfFragments
-            values - ctypes.c_short class instance array the size of PL2AnalogChannelInfo.m_NumberOfValues
             
         Returns:
-            1 - Success
-            0 - Failure
-            The class instances passed to the function are filled with values
+            fragment_timestamps - array the size of PL2AnalogChannelInfo.m_MaximumNumberOfFragments
+            fragment_counts - array the size of PL2AnalogChannelInfo.m_MaximumNumberOfFragments
+            values - array the size of PL2AnalogChannelInfo.m_NumberOfValues
         """
+
+        achannel_info = self.pl2_get_analog_channel_info_by_source(source_id, one_based_channel_index_in_source)
+
+        num_fragments_returned = ctypes.c_ulonglong(achannel_info.m_MaximumNumberOfFragments)
+        num_data_points_returned = ctypes.c_ulonglong(achannel_info.m_NumberOfValues)
+        fragment_timestamps = (ctypes.c_longlong * achannel_info.m_MaximumNumberOfFragments)()
+        fragment_counts = (ctypes.c_ulonglong * achannel_info.m_MaximumNumberOfFragments)()
+        values = (ctypes.c_short * achannel_info.m_NumberOfValues)()
 
         self.pl2_dll.PL2_GetAnalogChannelDataBySource.argtypes = (
             ctypes.c_int,
@@ -570,7 +585,11 @@ class PyPL2FileReader:
                                                                fragment_counts,
                                                                values)
 
-        return result
+        if not result:
+            self._print_error()
+            return None
+
+        return to_array(fragment_timestamps), to_array(fragment_counts), to_array(values)
 
     def pl2_get_spike_channel_info(self, zero_based_channel_index):
         """
@@ -681,9 +700,9 @@ class PyPL2FileReader:
             _file_handle - file handle
             zero_based_channel_index - zero based channel index
             num_spikes_returned - ctypes.c_ulonglong class instance
-            spike_timestamps - ctypes.c_ulonglong class instance array the size of PL2SpikeChannelInfo.m_NumberOfSpikes
+            spike_timestamps - array the size of PL2SpikeChannelInfo.m_NumberOfSpikes
             units - ctypes.c_ushort class instance array the size of PL2SpikeChannelInfo.m_NumberOfSpikes
-            values - ctypes.c_short class instance array the size of (PL2SpikeChannelInfo.m_NumberOfSpikes * PL2SpikeChannelInfo.m_SamplesPerSpike)
+            values - array the size of (PL2SpikeChannelInfo.m_NumberOfSpikes * PL2SpikeChannelInfo.m_SamplesPerSpike)
         
         Returns:
             1 - Success
@@ -743,9 +762,9 @@ class PyPL2FileReader:
             _file_handle - file handle
             channel_name = channel name
             num_spikes_returned - ctypes.c_ulonglong class instance
-            spike_timestamps - ctypes.c_ulonglong class instance array the size of PL2SpikeChannelInfo.m_NumberOfSpikes
+            spike_timestamps - array the size of PL2SpikeChannelInfo.m_NumberOfSpikes
             units - ctypes.c_ushort class instance array the size of PL2SpikeChannelInfo.m_NumberOfSpikes
-            values - ctypes.c_short class instance array the size of (PL2SpikeChannelInfo.m_NumberOfSpikes * PL2SpikeChannelInfo.m_SamplesPerSpike)
+            values - array the size of (PL2SpikeChannelInfo.m_NumberOfSpikes * PL2SpikeChannelInfo.m_SamplesPerSpike)
         
         Returns:
             1 - Success
@@ -813,9 +832,9 @@ class PyPL2FileReader:
             source_id - numeric source ID
             one_based_channel_index_in_source - one-based channel index within the source
             num_spikes_returned - ctypes.c_ulonglong class instance
-            spike_timestamps - ctypes.c_ulonglong class instance array the size of PL2SpikeChannelInfo.m_NumberOfSpikes
+            spike_timestamps - array the size of PL2SpikeChannelInfo.m_NumberOfSpikes
             units - ctypes.c_ushort class instance array the size of PL2SpikeChannelInfo.m_NumberOfSpikes
-            values - ctypes.c_short class instance array the size of (PL2SpikeChannelInfo.m_NumberOfSpikes * PL2SpikeChannelInfo.m_SamplesPerSpike)
+            values - array the size of (PL2SpikeChannelInfo.m_NumberOfSpikes * PL2SpikeChannelInfo.m_SamplesPerSpike)
         
         Returns:
             1 - Success
@@ -959,7 +978,7 @@ class PyPL2FileReader:
             ctypes.POINTER(PL2DigitalChannelInfo),
         )
 
-        pl2_digital_channel_info = PL2DigitalChannelInfo
+        pl2_digital_channel_info = PL2DigitalChannelInfo()
 
         result = self.pl2_dll.PL2_GetDigitalChannelInfoBySource(
             self._file_handle,
@@ -983,7 +1002,7 @@ class PyPL2FileReader:
             _file_handle - file handle
             zero_based_channel_index - zero-based digital event channel index
             num_events_returned - ctypes.c_ulonglong class instance
-            event_timestamps - ctypes.c_longlong class instance array the size of PL2DigitalChannelInfo.m_NumberOfEvents
+            event_timestamps - array the size of PL2DigitalChannelInfo.m_NumberOfEvents
             event_values - ctypes.c_ushort class instance array the size of PL2DigitalChannelInfo.m_NumberOfEvents
         
         Returns:
@@ -1031,7 +1050,7 @@ class PyPL2FileReader:
             _file_handle - file handle
             channel_name - digital event channel name
             num_events_returned - ctypes.c_ulonglong class instance
-            event_timestamps - ctypes.c_longlong class instance array the size of PL2DigitalChannelInfo.m_NumberOfEvents
+            event_timestamps - array the size of PL2DigitalChannelInfo.m_NumberOfEvents
             event_values - ctypes.c_ushort class instance array the size of PL2DigitalChannelInfo.m_NumberOfEvents
         
         Returns:
@@ -1086,7 +1105,7 @@ class PyPL2FileReader:
             source_id - numeric source ID
             one_based_channel_index_in_source - one-based channel index within the source
             num_events_returned - ctypes.c_ulonglong class instance
-            event_timestamps - ctypes.c_longlong class instance array the size of PL2DigitalChannelInfo.m_NumberOfEvents
+            event_timestamps - array the size of PL2DigitalChannelInfo.m_NumberOfEvents
             event_values - ctypes.c_ushort class instance array the size of PL2DigitalChannelInfo.m_NumberOfEvents
         
         Returns:
