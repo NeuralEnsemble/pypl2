@@ -171,19 +171,13 @@ class PyPL2FileReader:
             }
         ]
 
-        result = self.pl2_dll.PL2_OpenFile(
+        self.pl2_dll.PL2_OpenFile(
             pl2_file.encode('ascii'),
             ctypes.byref(self.file_handle),
         )
 
-        # If the handle is 0, print error message and return 0.
-        if result == 0:
-            self.print_error()
-            return None
-
         # check if spiking data can be loaded using zugbruecke
         self._check_spike_channel_data_consistency()
-
 
     def pl2_close_file(self):
         """
@@ -212,18 +206,12 @@ class PyPL2FileReader:
         self.pl2_dll.PL2_CloseAllFiles.argtypes = ()
         self.pl2_dll.PL2_CloseAllFiles()
 
-    def pl2_get_last_error(self, buffer, buffer_size):
+    def pl2_get_last_error(self):
         """
         Retrieve description of the last error
-        
-        Args:
-            buffer - instance of ctypes.c_char array
-            buffer_size - size of buffer
-        
+
         Returns:
-            1 - Success
-            0 - Failure
-            buffer is filled with error message
+            str - error message
         """
 
         self.pl2_dll.PL2_GetLastError.argtypes = (
@@ -238,10 +226,10 @@ class PyPL2FileReader:
             }
         ]
 
-        result = self.pl2_dll.PL2_GetLastError(buffer,
-                                                    ctypes.c_int(buffer_size))
+        buffer = (ctypes.c_char * 256)()
+        self.pl2_dll.PL2_GetLastError(buffer, ctypes.c_int(256))
 
-        return result
+        return str(buffer)
 
     def _check_spike_channel_data_consistency(self):
         """

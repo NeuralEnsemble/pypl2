@@ -64,12 +64,7 @@ def pl2_ad(filename, channel):
     p = PyPL2FileReader()
 
     # Open the file.
-    handle = p.pl2_open_file(filename)
-
-    # If the handle is 0, print error message and return 0.
-    if (handle == 0):
-        print_error(p)
-        return 0
+    p.pl2_open_file(filename)
 
     file_info = p.pl2_get_file_info()
 
@@ -172,12 +167,7 @@ def pl2_spikes(filename, channel, unit=[]):
 
     # Verify that the file passed exists first.
     # Open the file.
-    handle = p.pl2_open_file(filename)
-
-    # If the handle is 0, print error message and return 0.
-    if (handle == 0):
-        print_error(p)
-        return 0
+    p.pl2_open_file(filename)
 
     file_info = p.pl2_get_file_info()
 
