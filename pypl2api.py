@@ -63,7 +63,6 @@ def pl2_ad(filename, channel):
     # Create an instance of PyPL2FileReader.
     p = PyPL2FileReader()
 
-    # Verify that the file passed exists first.
     # Open the file.
     handle = p.pl2_open_file(filename)
 
@@ -72,17 +71,9 @@ def pl2_ad(filename, channel):
         print_error(p)
         return 0
 
-    # Create instance of PL2FileInfo.
-    file_info = PL2FileInfo()
+    file_info = p.pl2_get_file_info()
 
-    res = p.pl2_get_file_info(file_info)
-
-    # If res is 0, print error message and return 0.
-    if (res == 0):
-        print_error(p)
-        return 0
-
-        # Create instance of PL2AnalogChannelInfo.
+    # Create instance of PL2AnalogChannelInfo.
     achannel_info = PL2AnalogChannelInfo()
 
     # Check if channel is an integer or string, and call appropriate function
@@ -188,17 +179,9 @@ def pl2_spikes(filename, channel, unit=[]):
         print_error(p)
         return 0
 
-    # Create instance of PL2FileInfo.
-    file_info = PL2FileInfo()
+    file_info = p.pl2_get_file_info()
 
-    res = p.pl2_get_file_info(file_info)
-
-    # If res is 0, print error message and return 0.
-    if (res == 0):
-        print_error(p)
-        return 0
-
-        # Create instance of PL2SpikeChannelInfo.
+    # Create instance of PL2SpikeChannelInfo.
     schannel_info = PL2SpikeChannelInfo()
 
     # Check if channel is an integer or string, and call appropriate function
@@ -300,17 +283,9 @@ def pl2_events(filename, channel):
         print_error(p)
         return 0
 
-    # Create instance of PL2FileInfo.
-    file_info = PL2FileInfo()
+    file_info = p.pl2_get_file_info()
 
-    res = p.pl2_get_file_info(file_info)
-
-    # If res is 0, print error message and return 0.
-    if (res == 0):
-        print_error(p)
-        return 0
-
-        # Create an instance of PL2DigitalChannelInfo.
+    # Create an instance of PL2DigitalChannelInfo.
     echannel_info = PL2DigitalChannelInfo()
 
     # Check if channel is an integer or string, and call appropriate function
@@ -426,16 +401,7 @@ def pl2_info(filename):
         print_error(p)
         return 0
 
-    # Create instance of PL2FileInfo.
-    file_info = PL2FileInfo()
-
-    res = p.pl2_get_file_info(file_info)
-
-    # If res is 0, print error message and return 0.
-
-    if (res == 0):
-        print_error(p)
-        return 0
+    file_info = p.pl2_get_file_info()
 
     # Lists that will be filled with tuples
     spike_counts = []

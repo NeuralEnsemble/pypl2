@@ -114,8 +114,7 @@ def reader_and_file_info():
     reader = PyPL2FileReader()
     reader.pl2_open_file(filename)
 
-    file_info = PL2FileInfo()
-    reader.pl2_get_file_info(file_info)
+    file_info = reader.pl2_get_file_info()
     return reader, file_info
 
 

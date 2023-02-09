@@ -245,8 +245,7 @@ class PyPL2FileReader:
         waveform. Only in this case can zugbruecke reliably load spiking data
         """
 
-        file_info = PL2FileInfo()
-        self.pl2_get_file_info(file_info)
+        file_info = self.pl2_get_file_info()
 
         if not file_info.m_TotalNumberOfSpikeChannels:
             return
@@ -268,18 +267,19 @@ class PyPL2FileReader:
                               'from the file.')
                 return
 
-    def pl2_get_file_info(self, pl2_file_info):
+    def pl2_get_file_info(self):
         """
         Retrieve information about pl2 file.
-        
-        Args:
-            pl2_file_info - PL2FileInfo class instance
-        
+
         Returns:
+            pl2_file_info - PL2FileInfo class instance
+            return value - integer indicating dll call result
+
             1 - Success
             0 - Failure
-            The instance of PL2FileInfo passed to function is filled with file info
         """
+
+        pl2_file_info = PL2FileInfo()
 
         self.pl2_dll.PL2_GetFileInfo.argtypes = (
             ctypes.c_int,
@@ -288,7 +288,12 @@ class PyPL2FileReader:
 
         result = self.pl2_dll.PL2_GetFileInfo(self.file_handle, ctypes.byref(pl2_file_info))
 
-        return result
+        # If res is 0, print error message and return 0.
+        if result == 0:
+            self._print_error(self)
+            return None
+
+        return pl2_file_info
 
     def pl2_get_analog_channel_info(self, zero_based_channel_index, pl2_analog_channel_info):
         """
@@ -1192,6 +1197,11 @@ class PyPL2FileReader:
                                                                event_values)
 
         return result
+
+    def _print_error(self):
+        error_message = (ctypes.c_char * 256)()
+        self.pl2_get_last_error(error_message, 256)
+        print(error_message.value)
 
     # PL2 data block functions purposefully not implemented.
     def pl2_read_first_data_block(self):
