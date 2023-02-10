@@ -182,37 +182,17 @@ def test_compare_FileReader_spike_data(reader):
         channel_id_in_source = channel_info.m_Channel
 
         # set up arguments for running spike data methods
-        num_spikes_returned = {}
         spike_timestamps = {}
         units = {}
         values = {}
-        for mode in ['index', 'name', 'source']:
-            num_spikes_returned[mode] = ctypes.c_ulonglong(channel_info.m_NumberOfSpikes)
-            spike_timestamps[mode] = (ctypes.c_ulonglong * channel_info.m_NumberOfSpikes)()
-            units[mode] = (ctypes.c_ushort * channel_info.m_NumberOfSpikes)()
-            values[mode] = (ctypes.c_short * (
-                        channel_info.m_NumberOfSpikes * channel_info.m_SamplesPerSpike))()
 
         # run index-, name- and source-based methods to get spiking data
-        reader.pl2_get_spike_channel_data(i,
-                                          num_spikes_returned['index'],
-                                          spike_timestamps['index'],
-                                          units['index'],
-                                          values['index'])
-        reader.pl2_get_spike_channel_data_by_name(channel_name,
-                                                  num_spikes_returned['name'],
-                                                  spike_timestamps['name'],
-                                                  units['name'],
-                                                  values['name'])
-        reader.pl2_get_spike_channel_data_by_source(source_id,
-                                                    channel_id_in_source,
-                                                    num_spikes_returned['source'],
-                                                    spike_timestamps['source'],
-                                                    units['source'],
-                                                    values['source'])
-
-        assert num_spikes_returned['index'].value == num_spikes_returned['name'].value == \
-               num_spikes_returned['source'].value
+        res = reader.pl2_get_spike_channel_data(i)
+        spike_timestamps['index'], units['index'], values['index'] = res
+        res = reader.pl2_get_spike_channel_data_by_name(channel_name)
+        spike_timestamps['name'], units['name'], values['name'] = res
+        res = reader.pl2_get_spike_channel_data_by_source(source_id, channel_id_in_source)
+        spike_timestamps['source'], units['source'], values['source'] = res
 
         # compare spiketimes, unit and values between methods
         np.testing.assert_array_equal(spike_timestamps['index'], spike_timestamps['name'])
@@ -234,32 +214,17 @@ def test_compare_FileReader_digital_data(reader):
         source_id = channel_info.m_Source
         channel_id_in_source = channel_info.m_Channel
 
-        # set up arguments for runnining spikee data methods
-        num_events_returned = {}
+        # set up arguments for runnining spike data methods
         event_timestamps = {}
         event_values = {}
-        for mode in ['index', 'name', 'source']:
-            num_events_returned[mode] = ctypes.c_ulonglong(channel_info.m_NumberOfEvents)
-            event_timestamps[mode] = (ctypes.c_longlong * channel_info.m_NumberOfEvents)()
-            event_values[mode] = (ctypes.c_ushort * channel_info.m_NumberOfEvents)()
 
         # run index-, name- and source-based methods to get digital data
-        reader.pl2_get_digital_channel_data(i,
-                                            num_events_returned['index'],
-                                            event_timestamps['index'],
-                                            event_values['index'])
-        reader.pl2_get_digital_channel_data_by_name(channel_name,
-                                                    num_events_returned['name'],
-                                                    event_timestamps['name'],
-                                                    event_values['name'])
-
-        reader.pl2_get_digital_channel_data_by_source(source_id, channel_id_in_source,
-                                                      num_events_returned['source'],
-                                                      event_timestamps['source'],
-                                                      event_values['source'])
-
-        assert num_events_returned['index'].value == num_events_returned['name'].value == \
-               num_events_returned['source'].value
+        res = reader.pl2_get_digital_channel_data(i)
+        event_timestamps['index'], event_values['index'] = res
+        res = reader.pl2_get_digital_channel_data_by_name(channel_name)
+        event_timestamps['name'], event_values['name'] = res
+        res = reader.pl2_get_digital_channel_data_by_source(source_id, channel_id_in_source)
+        event_timestamps['source'], event_values['source'] = res
 
         # compare event times and values between methods
         np.testing.assert_array_equal(event_timestamps['index'], event_timestamps['name'])
@@ -280,16 +245,9 @@ def test_compare_FileReader_analog_data(reader):
         n_frag = channel_info.m_MaximumNumberOfFragments
 
         # set up arguments for running analog data methods
-        num_fragments_returned = {}
-        num_data_points_returned = {}
         fragment_timestamps = {}
         fragment_counts = {}
         values = {}
-
-        for mode in ['index', 'name', 'source']:
-            fragment_timestamps[mode] = (ctypes.c_longlong * n_frag)()
-            fragment_counts[mode] = (ctypes.c_ulonglong * n_frag)()
-            values[mode] = (ctypes.c_short * channel_info.m_NumberOfValues)()
 
         # Check if channel is an integer or string, and call appropriate function
         res = reader.pl2_get_analog_channel_data(i)

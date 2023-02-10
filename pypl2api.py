@@ -131,49 +131,24 @@ def pl2_spikes(filename, channel, unit=[]):
     if type(channel) in (str, bytes):
         schannel_info = p.pl2_get_spike_channel_info_by_name(channel)
 
-    # Set up instances of ctypes classes needed by pl2_get_spike_channel_data().
-    # These will be filled in by the function.
-    num_spikes_returned = ctypes.c_ulonglong(schannel_info.m_NumberOfSpikes)
-    spike_timestamps = (ctypes.c_ulonglong * schannel_info.m_NumberOfSpikes)()
-    units = (ctypes.c_ushort * schannel_info.m_NumberOfSpikes)()
-    values = (ctypes.c_short * (
-                schannel_info.m_NumberOfSpikes * schannel_info.m_SamplesPerSpike))()
-
     if type(channel) is int:
-        res = p.pl2_get_spike_channel_data(channel,
-                                           num_spikes_returned,
-                                           spike_timestamps,
-                                           units,
-                                           values)
+        res = p.pl2_get_spike_channel_data(channel)
     if type(channel) in (str, bytes):
-        res = p.pl2_get_spike_channel_data_by_name(channel,
-                                                   num_spikes_returned,
-                                                   spike_timestamps,
-                                                   units,
-                                                   values)
+        res = p.pl2_get_spike_channel_data_by_name(channel)
 
-    assert schannel_info.m_NumberOfSpikes == num_spikes_returned.value
+    spike_timestamps, units, values = res
 
     # Close the file
     p.pl2_close_file()
 
-    # The c_short() array called 'values' is currently a one-dimensional array of
-    # waveform samples, which isn't in volts, and it's not easy to just get one
-    # waveform out of it. I want this to be converted to volts, and also be
-    # converted to a tuple of tuples that contain the waveform voltage values.
-
-    # Then, extract the waveforms from 'values' into a multi-dimensional
-    # Python tuple. If there is a more 'Pythonic' way to do this, I want
-    # to know about it!
-    waveforms = (to_array(values) * schannel_info.m_CoeffToConvertToUnits).reshape(
-        (num_spikes_returned.value, schannel_info.m_SamplesPerSpike))
+    waveforms = (values * schannel_info.m_CoeffToConvertToUnits)
 
     # Create a named tuple called PL2Spikes
     PL2Spikes = namedtuple('PL2Spikes', 'n timestamps units waveforms')
 
-    return PL2Spikes(num_spikes_returned.value,
-                     to_array(spike_timestamps) / p.pl2_file_info.m_TimestampFrequency,
-                     to_array(units),
+    return PL2Spikes(waveforms.size,
+                     spike_timestamps / p.pl2_file_info.m_TimestampFrequency,
+                     units,
                      waveforms)
 
 
@@ -210,30 +185,12 @@ def pl2_events(filename, channel):
     p.pl2_open_file(filename)
     p.pl2_get_file_info()
 
-    # Check if channel is an integer or string, and call appropriate function
-    if type(channel) is int:
-        echannel_info = p.pl2_get_digital_channel_info(channel)
-    if type(channel) in (str, bytes):
-        echannel_info = p.pl2_get_digital_channel_info_by_name(channel)
-
     # Set up instances of ctypes classes needed by pl2_get_digital_channel_data().
-    # These will be filled in by the function.
-    num_events_returned = ctypes.c_ulonglong(echannel_info.m_NumberOfEvents)
-    event_timestamps = (ctypes.c_longlong * echannel_info.m_NumberOfEvents)()
-    event_values = (ctypes.c_ushort * echannel_info.m_NumberOfEvents)()
 
     if type(channel) is int:
-        res = p.pl2_get_digital_channel_data(channel,
-                                             num_events_returned,
-                                             event_timestamps,
-                                             event_values)
+        event_timestamps, even_values = p.pl2_get_digital_channel_data(channel)
     if type(channel) in (str, bytes):
-        res = p.pl2_get_digital_channel_data_by_name(channel,
-                                                     num_events_returned,
-                                                     event_timestamps,
-                                                     event_values)
-
-    assert echannel_info.m_NumberOfEvents == num_events_returned.value
+        event_timestamps, event_values = p.pl2_get_digital_channel_data_by_name(channel)
 
     # Close the file
     p.pl2_close_file()
@@ -241,9 +198,9 @@ def pl2_events(filename, channel):
     # Create a named tuple called PL2DigitalEvents
     PL2DigitalEvents = namedtuple('PL2DigitalEvents', 'n timestamps values')
 
-    return PL2DigitalEvents(num_events_returned.value,
-                            to_array(event_timestamps) / p.pl2_file_info.m_TimestampFrequency,
-                            to_array(event_values))
+    return PL2DigitalEvents(len(event_values),
+                            event_timestamps / p.pl2_file_info.m_TimestampFrequency,
+                            event_values)
 
 
 def pl2_info(filename):
