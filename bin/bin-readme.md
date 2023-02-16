@@ -1,11 +1,4 @@
-
-Because it is not clear if the re-distribution of the Plexon DLL files is allowed,
-they are currently not included in this repository.
-
-You can, however, find them as part of the "OmniPlex and MAP Offline SDK Bundle"
-on the Plexon Inc website: www.plexon.com
-
-A free download was available at the time of this writing at:  
+These dlls are available as free download at:  
 https://plexon.com/software-downloads/#software-downloads-SDKs
 
 Under "OmniPlex and MAP Offline (For reading previously recorded data files)"
@@ -17,5 +10,3 @@ The required files are in the bundle, at:
 * Python PL2 Offline Files SDK.zip
 * PyPL2
 * bin
-
-Just paste the two .dll files inside the directory of this readme file.
