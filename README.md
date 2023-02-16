@@ -21,9 +21,8 @@ Please be aware that the original files are copyright protected! The following s
 > copyright notice is kept intact.
 
 __Note:__ It is not completely clear, to which extend this copyright notice extends to the provided DLLs. It may be necessary to distribute those files separately.  
-For this reason, the DLL files are not been incorporated into the git repository untils this quesion is sorted out.
 
-## Ressources
+## Resources
 
 ### Original Plexon Scripts
 
