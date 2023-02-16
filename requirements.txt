@@ -1,4 +1,4 @@
-zugbruecke>=0.2.1; sys_platform != 'windows'
-wenv>=0.5; sys_platform != 'windows'
+zugbruecke>=0.2.1; sys_platform != 'win32'
+wenv>=0.5; sys_platform != 'win32'
 pytest>=7
 numpy
