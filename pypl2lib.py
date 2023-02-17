@@ -9,7 +9,6 @@
 # copyright notice is kept intact.
 
 from sys import platform
-import os
 import pathlib
 import warnings
 
@@ -123,16 +122,15 @@ def to_array_nonzero(c_array):
 
 
 class PyPL2FileReader:
-    def __init__(self, pl2_dll_path=None):
+    def __init__(self, pl2_dll_file_path=None):
         """
         PyPL2FileReader class implements functions in the C++ PL2 File Reader
         API provided by Plexon, Inc.
         
         Args:
-            pl2_dll_path - path where PL2FileReader.dll is location.
+            pl2_dll_file_path - path where PL2FileReader.dll is location.
                 The default value assumes the .dll files are located in the
-                'bin' directory, which is a subdirectory of the directory this
-                script is in.
+                'bin' directory, which is a subdirectory of this package.
                 Any file path passed is converted to an absolute path and checked
                 to see if the .dll exists there.
         
@@ -141,17 +139,18 @@ class PyPL2FileReader:
         """
         self._file_handle = ctypes.c_int(0)
         self.pl2_file_info = None
-        if pl2_dll_path is None:
-            pl2_dll_path = os.path.join(os.path.split(__file__)[0], 'bin')
-        self.pl2_dll_path = os.path.abspath(pl2_dll_path)
-
-        # use default '32bit' dll version
-        self.pl2_dll_file = os.path.join(self.pl2_dll_path, 'PL2FileReader.dll')
+        if pl2_dll_file_path is None:
+            if platform == 'win64':
+                pl2_dll_file_path = pathlib.Path(__file__).parent / 'bin' / 'PL2FileReader64.dll'
+            else:
+                # use default '32bit' dll version
+                pl2_dll_file_path = pathlib.Path(__file__).parent / 'bin' / 'PL2FileReader.dll'
+        self.pl2_dll_file_path = pathlib.Path(pl2_dll_file_path).absolute()
 
         try:
-            self.pl2_dll = ctypes.CDLL(self.pl2_dll_file)
+            self.pl2_dll = ctypes.CDLL(str(self.pl2_dll_file_path))
         except IOError:
-            raise IOError("Error: Can't load PL2FileReader.dll at: " + self.pl2_dll_file +
+            raise IOError(f"Error: Can't load PL2FileReader.dll at: {self.pl2_dll_file_path}"
                           "PL2FileReader.dll is bundled with the C++ PL2 Offline Files SDK"
                           "located on the Plexon Inc website: www.plexon.com"
                           "Contact Plexon Support for more information: support@plexon.com")
