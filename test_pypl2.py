@@ -18,8 +18,7 @@ else:
     import ctypes
 
 from pypl2api import pl2_ad, pl2_spikes, pl2_events, pl2_info
-from pypl2lib import (PyPL2FileReader, PL2FileInfo, PL2SpikeChannelInfo, PL2DigitalChannelInfo,
-                      PL2AnalogChannelInfo)
+from pypl2lib import (PyPL2FileReader)
 
 
 def dump_loaded_example_data(output_filename):
