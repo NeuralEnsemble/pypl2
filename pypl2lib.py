@@ -1256,74 +1256,70 @@ class PyPL2FileReader:
 
         return to_array(event_timestamps), to_array(event_values)
 
-    def pl2_get_start_stop_channel_info(self, number_of_start_stop_events):
+    def pl2_get_start_stop_channel_info(self):
         """
         Retrieve information about start/stop channel
-        
+
         Args:
-            _file_handle - file handle
-            number_of_start_stop_events - ctypes.c_ulonglong class instance
-        
+            None
+            
         Returns:
-            1 - Success
-            0 - Failure
-            The class instances passed to the function are filled with values
+            number_of_start_stop_events - number of start/stop events
         """
 
-        self.pl2_dll.PL2_GetStartStopChannelInfo.argtypes = (
-            ctypes.c_int,
-            ctypes.POINTER(ctypes.c_ulonglong)
-        )
+        number_of_start_stop_events = ctypes.c_ulonglong(0)
 
-        result = self.pl2_dll.PL2_GetStartStopChannelInfo(
-            self._file_handle,
-            number_of_start_stop_events
-        )
+        self.pl2_dll.PL2_GetStartStopChannelInfo.argtypes = (ctypes.c_int, ctypes.POINTER(ctypes.c_ulonglong))
 
-        return result
+        result = self.pl2_dll.PL2_GetStartStopChannelInfo(self._file_handle, ctypes.byref(number_of_start_stop_events))
 
-    def pl2_get_start_stop_channel_data(self, num_events_returned, event_timestamps, event_values):
+        if not result:
+            self._print_error()
+            return None
+
+        return number_of_start_stop_events.value
+
+    def pl2_get_start_stop_channel_data(self):
         """
         Retrieve digital channel data
-        
+
         Args:
-            _file_handle - file handle
-            num_events_returned - ctypes.c_ulonglong class instance
-            event_timestamps - ctypes.c_longlong class instance
-            event_values - point to ctypes.c_ushort class instance
-        
+            None
+
         Returns:
-            1 - Success
-            0 - Failure
-            The class instances passed to the function are filled with values
+            num_events_returned - number of events returned 
+            event_timestamps - timestamps of events returned
+            event_values - event identifiers (0==STOP, 1==START, 2==PAUSE, 3==RESUME)
+
+        The class instances passed to the function are filled with values
         """
+
+        number_of_start_stop_events = self.pl2_get_start_stop_channel_info()
+
+        num_events_returned = ctypes.c_ulonglong(0)
+        event_timestamps = (ctypes.c_longlong * number_of_start_stop_events)()
+        event_values = (ctypes.c_ushort * number_of_start_stop_events)()
 
         self.pl2_dll.PL2_GetStartStopChannelInfo.argtypes = (
             ctypes.c_int,
             ctypes.POINTER(ctypes.c_ulonglong),
             ctypes.POINTER(ctypes.c_longlong),
-            ctypes.POINTER(ctypes.c_ushort)
+            ctypes.POINTER(ctypes.c_ushort),
         )
 
         self.pl2_dll.PL2_GetStartStopChannelInfo.memsync = [
-            {
-                'p': [2],
-                'l': [1],
-                't': ctypes.c_longlong
-            },
-            {
-                'p': [3],
-                'l': [1],
-                't': ctypes.c_ushort
-            },
+            {"p": [2], "l": [1], "t": ctypes.c_longlong},
+            {"p": [3], "l": [1], "t": ctypes.c_ushort},
         ]
 
-        result = self.pl2_dll.PL2_GetStartStopChannelData(self._file_handle,
-                                                          num_events_returned,
-                                                          event_timestamps,
-                                                          event_values)
+        result = self.pl2_dll.PL2_GetStartStopChannelData(self._file_handle, ctypes.byref(num_events_returned), ctypes.byref(event_timestamps), ctypes.byref(event_values))
 
-        return result
+        # If res is 0, print error message
+        if result == 0:
+            self._print_error()
+            return None
+
+        return num_events_returned.value, to_array(event_timestamps), to_array(event_values)
 
     def _print_error(self):
         error_message = self.pl2_get_last_error()
