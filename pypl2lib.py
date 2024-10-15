@@ -395,8 +395,8 @@ class PyPL2FileReader:
             zero_based_channel_index - zero based channel index
             
         Returns:
-            fragment_timestamps - array the size of PL2AnalogChannelInfo.m_MaximumNumberOfFragments
-            fragment_counts - array the size of PL2AnalogChannelInfo.m_MaximumNumberOfFragments
+            fragment_timestamps - array the size of num_fragments_returned
+            fragment_counts - array the size of num_fragments_returned
             values - array the size of PL2AnalogChannelInfo.m_NumberOfValues
         """
 
@@ -448,10 +448,74 @@ class PyPL2FileReader:
             self._print_error()
             return None
 
-        return to_array(fragment_timestamps), to_array(fragment_counts), to_array(values)
+        fragment_timestamps = to_array(fragment_timestamps)[:num_fragments_returned.value]
+        fragment_counts = to_array(fragment_counts)[:num_fragments_returned.value]
+        values = to_array(values)
 
-    def pl2_get_analog_channel_data_subset(self):
-        pass
+        return fragment_timestamps, fragment_counts, values
+
+    def pl2_get_analog_channel_data_subset(self, zero_based_channel_index, zero_based_start_value_index, num_subset_values):
+        """
+        Retrieve analog channel data subset
+
+        Args:
+            zero_based_channel_index - zero based channel index
+            zero_based_start_value_index - zero based sample index of the start of the subset
+            num_subset_values - how many values to return in the subset
+        
+        Returns:
+            fragment_timestamps - array the size of num_fragments_returned
+            fragment_counts - array the size of num_fragments_returned
+            values - array the size of num_subset_values
+        """
+
+        achannel_info = self.pl2_get_analog_channel_info(zero_based_channel_index)
+
+        num_fragments_returned = ctypes.c_ulonglong(achannel_info.m_MaximumNumberOfFragments)
+        num_data_points_returned = ctypes.c_ulonglong(achannel_info.m_NumberOfValues)
+        fragment_timestamps = (ctypes.c_longlong * achannel_info.m_MaximumNumberOfFragments)()
+        fragment_counts = (ctypes.c_ulonglong * achannel_info.m_MaximumNumberOfFragments)()
+        values = (ctypes.c_short * num_subset_values)()
+
+        self.pl2_dll.PL2_GetAnalogChannelDataSubset.argtypes = (
+            ctypes.c_int,
+            ctypes.c_int,
+            ctypes.c_ulonglong,
+            ctypes.c_uint,
+            ctypes.POINTER(ctypes.c_ulonglong),
+            ctypes.POINTER(ctypes.c_ulonglong),
+            ctypes.POINTER(ctypes.c_longlong),
+            ctypes.POINTER(ctypes.c_ulonglong),
+            ctypes.POINTER(ctypes.c_short),
+        )
+
+        self.pl2_dll.PL2_GetAnalogChannelDataSubset.memsync = [
+            {"p": [6], "l": [4], "t": ctypes.c_longlong},
+            {"p": [7], "l": [4], "t": ctypes.c_ulonglong},
+            {"p": [8], "l": ([4],), "func": f"lambda x: {num_subset_values}", "t": ctypes.c_short},
+        ]
+
+        result = self.pl2_dll.PL2_GetAnalogChannelDataSubset(
+            self._file_handle,
+            zero_based_channel_index,
+            zero_based_start_value_index,
+            num_subset_values,
+            num_fragments_returned,
+            num_data_points_returned,
+            fragment_timestamps,
+            fragment_counts,
+            values,
+        )
+
+        if not result:
+            self._print_error()
+            return None
+        
+        fragment_timestamps = to_array(fragment_timestamps)[:num_fragments_returned.value]
+        fragment_counts = to_array(fragment_counts)[:num_fragments_returned.value]
+        values = to_array(values)
+
+        return fragment_timestamps, fragment_counts, values        
 
     def pl2_get_analog_channel_data_by_name(self, channel_name):
         """
@@ -461,8 +525,8 @@ class PyPL2FileReader:
             channel_name - analog channel name
             
         Returns:
-            fragment_timestamps - array the size of PL2AnalogChannelInfo.m_MaximumNumberOfFragments
-            fragment_counts - array the size of PL2AnalogChannelInfo.m_MaximumNumberOfFragments
+            fragment_timestamps - array the size of num_fragments_returned
+            fragment_counts - array the size of num_fragments_returned
             values - array the size of PL2AnalogChannelInfo.m_NumberOfValues
         """
         
@@ -522,7 +586,11 @@ class PyPL2FileReader:
             self._print_error()
             return None
         
-        return to_array(fragment_timestamps), to_array(fragment_counts), to_array(values)
+        fragment_timestamps = to_array(fragment_timestamps)[:num_fragments_returned.value]
+        fragment_counts = to_array(fragment_counts)[:num_fragments_returned.value]
+        values = to_array(values)
+
+        return fragment_timestamps, fragment_counts, values
 
     def pl2_get_analog_channel_data_by_source(self, source_id, one_based_channel_index_in_source):
         """
@@ -533,8 +601,8 @@ class PyPL2FileReader:
             one_based_channel_index_in_source - one-based channel index within the source
             
         Returns:
-            fragment_timestamps - array the size of PL2AnalogChannelInfo.m_MaximumNumberOfFragments
-            fragment_counts - array the size of PL2AnalogChannelInfo.m_MaximumNumberOfFragments
+            fragment_timestamps - array the size of num_fragments_returned
+            fragment_counts - array the size of num_fragments_returned
             values - array the size of PL2AnalogChannelInfo.m_NumberOfValues
         """
 
@@ -588,7 +656,11 @@ class PyPL2FileReader:
             self._print_error()
             return None
 
-        return to_array(fragment_timestamps), to_array(fragment_counts), to_array(values)
+        fragment_timestamps = to_array(fragment_timestamps)[:num_fragments_returned.value]
+        fragment_counts = to_array(fragment_counts)[:num_fragments_returned.value]
+        values = to_array(values)
+
+        return fragment_timestamps, fragment_counts, values
 
     def pl2_get_spike_channel_info(self, zero_based_channel_index):
         """
@@ -1184,74 +1256,70 @@ class PyPL2FileReader:
 
         return to_array(event_timestamps), to_array(event_values)
 
-    def pl2_get_start_stop_channel_info(self, number_of_start_stop_events):
+    def pl2_get_start_stop_channel_info(self):
         """
         Retrieve information about start/stop channel
-        
+
         Args:
-            _file_handle - file handle
-            number_of_start_stop_events - ctypes.c_ulonglong class instance
-        
+            None
+            
         Returns:
-            1 - Success
-            0 - Failure
-            The class instances passed to the function are filled with values
+            number_of_start_stop_events - number of start/stop events
         """
 
-        self.pl2_dll.PL2_GetStartStopChannelInfo.argtypes = (
-            ctypes.c_int,
-            ctypes.POINTER(ctypes.c_ulonglong)
-        )
+        number_of_start_stop_events = ctypes.c_ulonglong(0)
 
-        result = self.pl2_dll.PL2_GetStartStopChannelInfo(
-            self._file_handle,
-            number_of_start_stop_events
-        )
+        self.pl2_dll.PL2_GetStartStopChannelInfo.argtypes = (ctypes.c_int, ctypes.POINTER(ctypes.c_ulonglong))
 
-        return result
+        result = self.pl2_dll.PL2_GetStartStopChannelInfo(self._file_handle, ctypes.byref(number_of_start_stop_events))
 
-    def pl2_get_start_stop_channel_data(self, num_events_returned, event_timestamps, event_values):
+        if not result:
+            self._print_error()
+            return None
+
+        return number_of_start_stop_events.value
+
+    def pl2_get_start_stop_channel_data(self):
         """
         Retrieve digital channel data
-        
+
         Args:
-            _file_handle - file handle
-            num_events_returned - ctypes.c_ulonglong class instance
-            event_timestamps - ctypes.c_longlong class instance
-            event_values - point to ctypes.c_ushort class instance
-        
+            None
+
         Returns:
-            1 - Success
-            0 - Failure
-            The class instances passed to the function are filled with values
+            num_events_returned - number of events returned 
+            event_timestamps - timestamps of events returned
+            event_values - event identifiers (0==STOP, 1==START, 2==PAUSE, 3==RESUME)
+
+        The class instances passed to the function are filled with values
         """
+
+        number_of_start_stop_events = self.pl2_get_start_stop_channel_info()
+
+        num_events_returned = ctypes.c_ulonglong(0)
+        event_timestamps = (ctypes.c_longlong * number_of_start_stop_events)()
+        event_values = (ctypes.c_ushort * number_of_start_stop_events)()
 
         self.pl2_dll.PL2_GetStartStopChannelInfo.argtypes = (
             ctypes.c_int,
             ctypes.POINTER(ctypes.c_ulonglong),
             ctypes.POINTER(ctypes.c_longlong),
-            ctypes.POINTER(ctypes.c_ushort)
+            ctypes.POINTER(ctypes.c_ushort),
         )
 
         self.pl2_dll.PL2_GetStartStopChannelInfo.memsync = [
-            {
-                'p': [2],
-                'l': [1],
-                't': ctypes.c_longlong
-            },
-            {
-                'p': [3],
-                'l': [1],
-                't': ctypes.c_ushort
-            },
+            {"p": [2], "l": [1], "t": ctypes.c_longlong},
+            {"p": [3], "l": [1], "t": ctypes.c_ushort},
         ]
 
-        result = self.pl2_dll.PL2_GetStartStopChannelData(self._file_handle,
-                                                          num_events_returned,
-                                                          event_timestamps,
-                                                          event_values)
+        result = self.pl2_dll.PL2_GetStartStopChannelData(self._file_handle, ctypes.byref(num_events_returned), ctypes.byref(event_timestamps), ctypes.byref(event_values))
 
-        return result
+        # If res is 0, print error message
+        if result == 0:
+            self._print_error()
+            return None
+
+        return num_events_returned.value, to_array(event_timestamps), to_array(event_values)
 
     def _print_error(self):
         error_message = self.pl2_get_last_error()
