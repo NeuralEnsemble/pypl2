@@ -454,8 +454,68 @@ class PyPL2FileReader:
 
         return fragment_timestamps, fragment_counts, values
 
-    def pl2_get_analog_channel_data_subset(self):
-        pass
+    def pl2_get_analog_channel_data_subset(self, zero_based_channel_index, zero_based_start_value_index, num_subset_values):
+        """
+        Retrieve analog channel data subset
+
+        Args:
+            zero_based_channel_index - zero based channel index
+            zero_based_start_value_index - zero based sample index of the start of the subset
+            num_subset_values - how many values to return in the subset
+        
+        Returns:
+            fragment_timestamps - array the size of num_fragments_returned
+            fragment_counts - array the size of num_fragments_returned
+            values - array the size of num_subset_values
+        """
+
+        achannel_info = self.pl2_get_analog_channel_info(zero_based_channel_index)
+
+        num_fragments_returned = ctypes.c_ulonglong(achannel_info.m_MaximumNumberOfFragments)
+        num_data_points_returned = ctypes.c_ulonglong(achannel_info.m_NumberOfValues)
+        fragment_timestamps = (ctypes.c_longlong * achannel_info.m_MaximumNumberOfFragments)()
+        fragment_counts = (ctypes.c_ulonglong * achannel_info.m_MaximumNumberOfFragments)()
+        values = (ctypes.c_short * num_subset_values)()
+
+        self.pl2_dll.PL2_GetAnalogChannelDataSubset.argtypes = (
+            ctypes.c_int,
+            ctypes.c_int,
+            ctypes.c_ulonglong,
+            ctypes.c_uint,
+            ctypes.POINTER(ctypes.c_ulonglong),
+            ctypes.POINTER(ctypes.c_ulonglong),
+            ctypes.POINTER(ctypes.c_longlong),
+            ctypes.POINTER(ctypes.c_ulonglong),
+            ctypes.POINTER(ctypes.c_short),
+        )
+
+        self.pl2_dll.PL2_GetAnalogChannelDataSubset.memsync = [
+            {"p": [6], "l": [4], "t": ctypes.c_longlong},
+            {"p": [7], "l": [4], "t": ctypes.c_ulonglong},
+            {"p": [8], "l": ([4],), "func": f"lambda x: {num_subset_values}", "t": ctypes.c_short},
+        ]
+
+        result = self.pl2_dll.PL2_GetAnalogChannelDataSubset(
+            self._file_handle,
+            zero_based_channel_index,
+            zero_based_start_value_index,
+            num_subset_values,
+            num_fragments_returned,
+            num_data_points_returned,
+            fragment_timestamps,
+            fragment_counts,
+            values,
+        )
+
+        if not result:
+            self._print_error()
+            return None
+        
+        fragment_timestamps = to_array(fragment_timestamps)[:num_fragments_returned.value]
+        fragment_counts = to_array(fragment_counts)[:num_fragments_returned.value]
+        values = to_array(values)
+
+        return fragment_timestamps, fragment_counts, values        
 
     def pl2_get_analog_channel_data_by_name(self, channel_name):
         """
